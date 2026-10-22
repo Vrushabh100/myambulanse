@@ -1,4 +1,4 @@
-import express from "express";
+﻿import express from "express";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
@@ -29,10 +29,14 @@ function dedupeIps(list, ip) {
   return next.slice(0, MAX_KNOWN_IPS);
 }
 
-async function rememberIp(user, ip) {
-  user.knownIps = dedupeIps(user.knownIps, ip);
-  user.lastLoginAt = new Date();
-  await user.save();
+function rememberIp(user, ip) {
+  User.updateOne(
+    { _id: user._id },
+    {
+      $set: { lastLoginAt: new Date() },
+      $push: { knownIps: { $each: [ip], $position: 0, $slice: MAX_KNOWN_IPS } }
+    }
+  ).catch(() => {});
 }
 
 export function publicUser(u) {
@@ -89,7 +93,7 @@ router.post("/login", async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "Mobile number not registered. Please register first." });
     }
-    await rememberIp(user, clientIp(req));
+    rememberIp(user, clientIp(req));
     res.json({ token: sign(user), user: publicUser(user) });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -111,7 +115,7 @@ router.post("/auto", async (req, res) => {
     if (!ip || !ips.includes(ip)) {
       return res.status(401).json({ error: "ip_mismatch" });
     }
-    await rememberIp(user, ip);
+    rememberIp(user, ip);
     res.json({ token: sign(user), user: publicUser(user), auto: true });
   } catch (e) {
     res.status(500).json({ error: e.message });

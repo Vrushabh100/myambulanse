@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+﻿import React, { useEffect, useRef, useState } from "react";
 import { Routes, Route, Navigate, Link, useNavigate, useLocation } from "react-router-dom";
 import AuthPage from "./pages/AuthPage.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
@@ -7,6 +7,7 @@ import VehiclesPage from "./pages/VehiclesPage.jsx";
 import DoctorPage from "./pages/DoctorPage.jsx";
 import {
   api,
+  isHttpError,
   getToken,
   setSession,
   clearSession,
@@ -167,7 +168,16 @@ export default function App() {
           setUser(u);
           setBooting(false);
           return;
-        } catch {
+        } catch (e) {
+          if (cancelled) return;
+          if (!isHttpError(e)) {
+            // Timeout or network failure: the server never answered, so the stored
+            // session may still be valid. Keep storage and finish booting so the
+            // user can retry instead of being kicked to login.
+            setBooting(false);
+            return;
+          }
+          // Real auth error from the server (expired token, user not found, ...).
           clearSession();
         }
       }
@@ -182,7 +192,16 @@ export default function App() {
           setUser(data.user);
           setBooting(false);
           return;
-        } catch {
+        } catch (e) {
+          if (cancelled) return;
+          if (!isHttpError(e)) {
+            // Timeout or network failure: keep the saved mobile so the next load
+            // can auto-login again once the server is reachable.
+            setBooting(false);
+            return;
+          }
+          // Server answered: only clear saved mobile on real rejections
+          // (401 ip_mismatch, 404 not registered, ...).
           clearSession();
           clearSavedMobile();
         }
