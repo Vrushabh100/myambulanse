@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MyAmbulance — Test Data &amp; Demo Credentials (Confidential)</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4 landscape; margin: 14mm 12mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Nunito', 'Segoe UI', sans-serif;
+    color: #17160F; background: #fff;
+    font-size: 10.5pt; line-height: 1.5;
+    max-width: 277mm; margin: 0 auto; padding: 14mm 12mm;
+  }
+  h1, h2, h3 { font-family: 'Fredoka', sans-serif; font-weight: 500; letter-spacing: -0.02em; line-height: 1.15; }
+  h1 { font-size: 21pt; margin-bottom: 6px; }
+  h2 { font-size: 14pt; margin: 22px 0 8px; border-bottom: 3px solid #FFED00; padding-bottom: 4px; }
+  .title-block { text-align: center; padding-bottom: 12px; border-bottom: 4px solid #FFED00; margin-bottom: 14px; }
+  .title-block .badge {
+    display: inline-block; background: #17160F; color: #FFED00;
+    font-weight: 800; font-size: 9.5pt; letter-spacing: .14em; text-transform: uppercase;
+    padding: 5px 16px; border-radius: 999px; margin-bottom: 10px;
+  }
+  .note {
+    background: #FFFCE0; border: 1.5px solid #FFED00; border-radius: 12px;
+    padding: 10px 14px; margin: 10px 0 4px; font-size: 10pt;
+  }
+  .note b { font-family: 'Fredoka', sans-serif; }
+  .meta { font-size: 10pt; margin-top: 6px; color: #44423A; }
+  .meta span { margin: 0 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 9pt; margin: 8px 0 14px; }
+  th, td { border: 1px solid #DCD8CC; padding: 5px 7px; text-align: left; vertical-align: top; }
+  th { background: #F1EFE6; font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 9pt; white-space: nowrap; }
+  tr:nth-child(even) td { background: #FBFAF5; }
+  .mono { font-family: 'Consolas', 'Courier New', monospace; font-size: 8.5pt; }
+  .muted { color: #6B6860; }
+  .small { font-size: 8.5pt; }
+  .tag { background: #FFED00; color: #17160F; font-weight: 800; font-size: 8pt; padding: 1px 7px; border-radius: 6px; white-space: nowrap; }
+  .tag.open { background: #E5322D; color: #fff; }
+  .tag.ok { background: #0FA958; color: #fff; }
+  .callout-ref {
+    background: #FFFCE0; border: 1.5px solid #FFED00; border-left: 6px solid #E5322D;
+    border-radius: 12px; padding: 10px 14px; margin: 8px 0 12px; font-size: 9.5pt;
+  }
+  .pagebreak { page-break-before: always; }
+  .footer-note { margin-top: 20px; padding-top: 10px; border-top: 1px solid #ECE9DE; font-size: 9pt; color: #6B6860; text-align: center; }
+  .footer-note .contact { font-weight: 700; color: #17160F; margin-bottom: 3px; }
+</style>
+</head>
+<body>
+
+<div class="title-block">
+  <div class="badge">Confidential — Testing Only</div>
+  <h1>MyAmbulance — Test Data &amp; Demo Credentials</h1>
+  <div class="meta">
+    <span><b>Date:</b> 22 October 2026</span>
+    <span><b>Backend:</b> http://localhost:5050 (Express + MongoDB Atlas)</span>
+    <span><b>Frontend:</b> http://localhost:5173</span>
+  </div>
+</div>
+
+<div class="note">
+  <b>Login = mobile number only (no OTP / no password).</b>
+  Type the mobile number from the tables below on the login screen and you are in — the app matches the
+  number and auto-logs you in from this machine's network. Doctors see the doctor console; patient users
+  see the patient dashboard. <b>Data lives in MongoDB Atlas (permanent)</b> — seeded once through the real
+  public API by <span class="mono">server/seed-test-data.mjs</span> (idempotent, safe to re-run; it never
+  deletes or modifies records it did not create).
+</div>
+
+<h2>Table 1 — Doctors (log in to see the doctor console)</h2>
+<table>
+  <thead>
+    <tr><th>#</th><th>Name</th><th>Mobile (login)</th><th>Degree</th><th>Specialization</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td>Dr. Aarav Sharma</td><td class="mono">9822000001</td><td>MD</td><td>Cardiology</td></tr>
+    <tr><td>2</td><td>Dr. Priya Deshmukh</td><td class="mono">9822000002</td><td>MS</td><td>Neurology</td></tr>
+    <tr><td>3</td><td>Dr. Rohan Singh</td><td class="mono">9822000003</td><td>MBBS</td><td>Orthopedics</td></tr>
+    <tr><td>4</td><td>Dr. Ananya Verma</td><td class="mono">9822000004</td><td>MD</td><td>Pediatrics</td></tr>
+    <tr><td>5</td><td>Dr. Kabir Nair</td><td class="mono">9822000005</td><td>MS</td><td>Trauma Surgery</td></tr>
+  </tbody>
+</table>
+
+<h2>Table 2 — Patient users (each with 1 family patient, 2 emergency contacts, 3 tracker entries, 1 car)</h2>
+<table>
+  <thead>
+    <tr>
+      <th>#</th><th>Name</th><th>Mobile (login)</th><th>Address city</th>
+      <th>Family patient</th><th>Conditions</th><th>Car</th><th>Device IDs</th><th>Emergency contacts</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td><td>Rahul Sharma</td><td class="mono">9822000101</td><td>Nagpur</td>
+      <td><b>Suresh Sharma</b><br><span class="muted small">Father · 62 · Male · B+</span></td>
+      <td class="small">Diabetes, Hypertension<br><span class="muted">Allergy: Penicillin</span></td>
+      <td class="mono">MH31AB1101<br><span class="muted">Maruti Swift, White</span></td>
+      <td class="mono small">TSTA01<br>TSTB01</td>
+      <td class="small">Meena Sharma (Wife) <span class="mono">9822000191</span><br>Ritu Sharma (Sister) <span class="mono">9822000192</span></td>
+    </tr>
+    <tr>
+      <td>2</td><td>Priya Kulkarni</td><td class="mono">9822000102</td><td>Pune</td>
+      <td><b>Ashok Kulkarni</b><br><span class="muted small">Father · 58 · Male · O+</span></td>
+      <td class="small">Asthma<br><span class="muted">Allergy: Penicillin</span></td>
+      <td class="mono">MH31AB1102<br><span class="muted">Hyundai Creta, Silver</span></td>
+      <td class="mono small">TSTA02<br>TSTB02</td>
+      <td class="small">Sunita Kulkarni (Wife) <span class="mono">9822000193</span></td>
+    </tr>
+    <tr>
+      <td>3</td><td>Amit Patil</td><td class="mono">9822000103</td><td>Nashik</td>
+      <td><b>Sunita Patil</b><br><span class="muted small">Mother · 55 · Female · A+</span></td>
+      <td class="small">Thyroid, Arthritis<br><span class="muted">Allergy: Sulfa drugs</span></td>
+      <td class="mono">MH31AB1103<br><span class="muted">Tata Nexon, Blue</span></td>
+      <td class="mono small">TSTA03<br>TSTB03</td>
+      <td class="small">Amit Patil (Son) <span class="mono">9822000103</span><br>Gita Patil (Aunt) <span class="mono">9822000194</span></td>
+    </tr>
+    <tr>
+      <td>4</td><td>Sneha Kulkarni</td><td class="mono">9822000104</td><td>Amravati</td>
+      <td><b>Sneha Kulkarni</b><br><span class="muted small">Self · 28 · Female · AB+</span></td>
+      <td class="small">Migraine<br><span class="muted">Allergies: none known</span></td>
+      <td class="mono">MH31AB1104<br><span class="muted">Honda City, White</span></td>
+      <td class="mono small">TSTA04<br>TSTB04</td>
+      <td class="small">Mahesh Kulkarni (Husband) <span class="mono">9822000195</span></td>
+    </tr>
+    <tr>
+      <td>5</td><td>Vikram Rao</td><td class="mono">9822000105</td><td>Wardha</td>
+      <td><b>Lakshmi Rao</b><br><span class="muted small">Mother · 70 · Female · O−</span></td>
+      <td class="small">Diabetes, Heart valve replacement 2021<br><span class="muted">Allergy: Dust</span></td>
+      <td class="mono">MH31AB1105<br><span class="muted">Mahindra Scorpio, Black</span></td>
+      <td class="mono small">TSTA05<br>TSTB05</td>
+      <td class="small">Vikram Rao (Son) <span class="mono">9822000105</span><br>Anita Rao (DIL) <span class="mono">9822000196</span></td>
+    </tr>
+    <tr>
+      <td>6</td><td>Ananya Joshi</td><td class="mono">9822000106</td><td>Chandrapur</td>
+      <td><b>Dev Joshi</b><br><span class="muted small">Father · 49 · Male · B−</span></td>
+      <td class="small">Hypertension<br><span class="muted">Allergy: Dust</span></td>
+      <td class="mono">MH31AB1106<br><span class="muted">Maruti Baleno, Red</span></td>
+      <td class="mono small">TSTA06<br>TSTB06</td>
+      <td class="small">Radha Joshi (Wife) <span class="mono">9822000197</span></td>
+    </tr>
+    <tr>
+      <td>7</td><td>Karan Mehta</td><td class="mono">9822000107</td><td>Yavatmal</td>
+      <td><b>Isha Mehta</b><br><span class="muted small">Spouse · 32 · Female · A−</span></td>
+      <td class="small">Pregnancy week 28 (normal)<br><span class="muted">Allergies: none</span></td>
+      <td class="mono">MH31AB1107<br><span class="muted">Kia Sonet, Orange</span></td>
+      <td class="mono small">TSTA07<br>TSTB07</td>
+      <td class="small">Karan Mehta (Husband) <span class="mono">9822000107</span></td>
+    </tr>
+    <tr>
+      <td>8</td><td>Divya Iyer</td><td class="mono">9822000108</td><td>Bhandara</td>
+      <td><b>Mohan Iyer</b><br><span class="muted small">Father · 66 · Male · O+</span></td>
+      <td class="small">COPD<br><span class="muted">Allergies: Dust, Smoke</span></td>
+      <td class="mono">MH31AB1108<br><span class="muted">Toyota Innova, Grey</span></td>
+      <td class="mono small">TSTA08<br>TSTB08</td>
+      <td class="small">Shanti Iyer (Wife) <span class="mono">9822000198</span><br>Divya Iyer (Daughter) <span class="mono">9822000108</span></td>
+    </tr>
+    <tr>
+      <td>9</td><td>Rohan Gupta</td><td class="mono">9822000109</td><td>Gondia</td>
+      <td><b>Aarav Gupta</b><br><span class="muted small">Son · 8 · Male · A+</span></td>
+      <td class="small">Asthma (mild)<br><span class="muted">Allergy: Dust</span></td>
+      <td class="mono">MH31AB1109<br><span class="muted">Hyundai i10, White</span></td>
+      <td class="mono small">TSTA09<br>TSTB09</td>
+      <td class="small">Neha Gupta (Mother) <span class="mono">9822000199</span></td>
+    </tr>
+    <tr>
+      <td>10</td><td>Meera Kaur</td><td class="mono">9822000110</td><td>Gadchiroli</td>
+      <td><b>Gurpreet Singh</b><br><span class="muted small">Father · 74 · Male · B+</span></td>
+      <td class="small">Arthritis, Mild dementia<br><span class="muted">Allergy: Dust</span></td>
+      <td class="mono">MH31AB1110<br><span class="muted">Maruti Ertiga, Silver</span></td>
+      <td class="mono small">TSTA10<br>TSTB10</td>
+      <td class="small">Meera Kaur (Daughter) <span class="mono">9822000110</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Table 3 — Demo emergencies already in the system</h2>
+<table>
+  <thead>
+    <tr><th>#</th><th>Emergency ID</th><th>User who raised SOS</th><th>Family patient</th><th>Car</th><th>Type</th><th>Handled by</th><th>Status</th><th>Doctor's note</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td class="mono small">6ad91f16575fd67ca02cfd70</td><td>Rahul Sharma <span class="mono">9822000101</span></td><td>Suresh Sharma</td><td class="mono">MH31AB1101</td><td>Heart attack / Chest pain</td><td>Dr. Aarav Sharma</td><td><span class="tag ok">RESOLVED</span></td><td class="small">ECG normal, chest pain relieved after monitoring; continue cardiac medicines</td></tr>
+    <tr><td>2</td><td class="mono small">6ad91f16575fd67ca02cfd7d</td><td>Priya Kulkarni <span class="mono">9822000102</span></td><td>Ashok Kulkarni</td><td class="mono">MH31AB1102</td><td>Breathing difficulty</td><td>Dr. Rohan Singh</td><td><span class="tag ok">RESOLVED</span></td><td class="small">Stable after nebulization; advised hospital visit</td></tr>
+    <tr><td>3</td><td class="mono small">6ad91f16575fd67ca02cfd8a</td><td>Vikram Rao <span class="mono">9822000105</span></td><td>Lakshmi Rao</td><td class="mono">MH31AB1105</td><td>Heart attack / Chest pain</td><td>Dr. Aarav Sharma</td><td><span class="tag ok">RESOLVED</span></td><td class="small">Aspirin given, ECG reviewed; stable after reaching hospital</td></tr>
+    <tr><td>4</td><td class="mono small">6ad91f17575fd67ca02cfd97</td><td>Karan Mehta <span class="mono">9822000107</span></td><td>Isha Mehta</td><td class="mono">MH31AB1107</td><td>Pregnancy complication</td><td>Dr. Ananya Verma</td><td><span class="tag ok">RESOLVED</span></td><td class="small">Fetal heartbeat normal; observed 1 hr, advised rest at home</td></tr>
+    <tr><td>5</td><td class="mono small">6ad91f17575fd67ca02cfda4</td><td>Rohan Gupta <span class="mono">9822000109</span></td><td>Aarav Gupta</td><td class="mono">MH31AB1109</td><td>Breathing difficulty</td><td>Dr. Ananya Verma</td><td><span class="tag ok">RESOLVED</span></td><td class="small">Nebulization done, SpO2 98%; discharged in stable condition</td></tr>
+    <tr><td>6</td><td class="mono small">6ad91f18575fd67ca02cfdb1</td><td>Meera Kaur <span class="mono">9822000110</span></td><td>Gurpreet Singh</td><td class="mono">MH31AB1110</td><td>High fever + unconscious</td><td>Dr. Priya Deshmukh</td><td><span class="tag ok">RESOLVED</span></td><td class="small">Responding to treatment, fever down; under observation in ward</td></tr>
+    <tr>
+      <td>7</td><td class="mono small">6ad91f18575fd67ca02cfdbe</td><td>Amit Patil <span class="mono">9822000103</span></td><td>Sunita Patil</td><td class="mono">MH31AB1103</td><td>General emergency</td>
+      <td>Dr. Aarav Sharma → <b>Dr. Kabir Nair</b><br><span class="muted small">referral note: "In OT, you handle"</span></td>
+      <td><span class="tag open">REFERRED (OPEN)</span></td>
+      <td class="small muted">— left open on purpose so the referral flow can be demoed —</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout-ref">
+  <b>★ Live referral demo:</b> log in as <b>Dr. Kabir Nair — mobile 9822000005</b>. The open emergency for
+  <b>Sunita Patil</b> (raised by Amit Patil / 9822000103) shows the banner
+  <b>"REFERRED TO YOU by Dr. Aarav Sharma"</b> with the note <i>"In OT, you handle"</i>. It is deliberately
+  <b>not approved and not resolved</b> — the referring doctor (Dr. Aarav Sharma, 9822000001) sees it as
+  "Referred to Dr Kabir Nair". Resolving or cancelling it removes the demo, so re-run
+  <span class="mono">node seed-test-data.mjs</span> (from <span class="mono">server/</span>) to restore it.
+</div>
+
+<div class="footer-note">
+  <div class="contact">[vrushabh.udepurkar.ai@ghrce.raisoni.net] | [+91 8007470450]</div>
+  Confidential — for testing only. Login = mobile number only; all records live in MongoDB Atlas (permanent).
+</div>
+
+</body>
+</html>

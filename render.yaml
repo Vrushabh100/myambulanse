@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: myambulance
+    runtime: node
+    rootDir: server
+    # Working dir is repo/server, so ../client is the Vite app
+    buildCommand: npm install && cd ../client && npm install && npm run build
+    startCommand: npm start
+    envVars:
+      # PORT is assigned automatically by Render (no entry needed)
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
