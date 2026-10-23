@@ -36,6 +36,13 @@ app.use(cors({
 }));
 app.use(express.json({ limit: "2mb" }));
 
+// Serverless hosts (Vercel Express preset) never call start(), so make sure the
+// Atlas connection is attempted before any API request is served.
+app.use("/api", async (req, res, next) => {
+  try { await ensureDb(); } catch { /* fall through; the db-down middleware answers 503 */ }
+  next();
+});
+
 // An async route that throws (e.g. mongoose CastError) must never kill the API process.
 process.on("unhandledRejection", (err) => {
   console.error("Unhandled rejection (kept server alive):", err?.stack || err);

@@ -3,6 +3,11 @@ const USER_KEY = "ma_user";
 const MOBILE_KEY = "ma_mobile";
 const DEFAULT_TIMEOUT_MS = 8000;
 
+// Build-time API base. Empty string (unset) keeps relative /api/... calls
+// (local dev + same-origin deploys). Set VITE_API_BASE to an absolute URL when
+// the client and API live on different origins (two-project Vercel deploy).
+const API_BASE = (import.meta.env.VITE_API_BASE || "").replace(/\/+$/, "");
+
 export function getToken() {
   return localStorage.getItem(TOKEN_KEY);
 }
@@ -54,7 +59,7 @@ export async function api(path, { method = "GET", body, timeoutMs = DEFAULT_TIME
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   let res;
   try {
-    res = await fetch(`/api${path}`, {
+    res = await fetch(`${API_BASE}/api${path}`, {
       method,
       headers,
       body: body ? JSON.stringify(body) : undefined,

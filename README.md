@@ -59,25 +59,43 @@ git push -u origin main
    random string). Mark them secret/sync=false. `PORT` is injected by Render.
 6. Create the service. The live URL serves the client UI, under `/api/*` for the API.
 
-## Deploy to Vercel (frontend + API) + MongoDB Atlas
+## Deploy (two Vercel projects)
 
-Static Vite client plus one serverless API function (`api/index.js`) that wraps
-the Express app in `server/index.js` (which `export default`s the app).
+Two projects are imported from the SAME repo. The client and API get different
+domains, so the client calls the API by absolute URL and the API allows that origin.
 
-1. Push the repo to GitHub, then in Vercel: **Add New... -> Project -> Import** the repo.
-2. Framework preset: **Other**. `vercel.json` sets the build command
-   (`npm run build` -> `cd client && npm install && npm run build`), the output
-   directory (`client/dist`) and the rewrites.
-3. Project -> Settings -> Environment Variables (Production + Preview):
+**Project A (site):**
+
+1. Vercel -> **Add New... -> Project -> Import** the repo.
+2. Root Directory: `client`  |  Framework Preset: **Vite**.
+3. Environment Variable (Production + Preview): `VITE_API_BASE = https://<api-project>.vercel.app`.
+   This value is baked in at build time, so **redeploy** after changing it.
+4. Deploy.
+
+**Project B (API):**
+
+1. Import the SAME repo as a second project.
+2. Root Directory: `server`  |  Framework Preset: **Express** (Vercel wraps the
+   exported app from `server/index.js` as one serverless function).
+3. Environment Variables (Production + Preview):
    - `MONGODB_URI` - MongoDB Atlas connection string (required).
    - `JWT_SECRET` - long random string (required in production).
    - `NODE_ENV=production` - production gates (no dev secret).
    - `TRUST_PROXY=1` - Vercel runs behind a proxy, so `X-Forwarded-For` is honored for client IPs.
-   - `CORS_ORIGINS` - optional; leave unset for the same-origin deployment.
-4. MongoDB Atlas -> **Network Access** -> allow `0.0.0.0/0` (or Vercel egress IPs).
-5. The client calls the API with relative `/api/...` paths. The rewrite
-   `/api/(.*) -> /api/index` keeps everything same-origin, so no CORS is needed;
-   every other path falls back to `/index.html` for the SPA.
+   - `CORS_ORIGINS=https://<site-project>.vercel.app` - browser origin allowed to call the API.
+4. Deploy.
 
-MongoDB Atlas is required. If Atlas is unreachable the API returns 503 and retries
-every 15s; data is never stored in memory.
+MongoDB Atlas -> **Network Access** -> allow `0.0.0.0/0` (or Vercel egress IPs).
+
+**Verify:**
+
+1. `https://<api-project>.vercel.app/api/health` -> `{"ok":true,"db":"connected"}`.
+2. Open the site URL and log in with `9822000101`.
+
+The client calls the API through `VITE_API_BASE` (absolute) in this setup. When
+`VITE_API_BASE` is unset the client falls back to relative `/api/...`, which is what
+local dev and same-origin deploys use. MongoDB Atlas is required; if Atlas is
+unreachable the API returns 503 and retries every 15s; data is never stored in memory.
+
+The old single-project Vercel config (`vercel.json`, `api/index.js`) remains in the
+repo but is **not used** by this setup.
