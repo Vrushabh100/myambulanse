@@ -1,9 +1,0 @@
-{
-  "buildCommand": "cd client && npm install --include=dev && npm run build",
-  "outputDirectory": "client/dist",
-  "installCommand": "npm install --include=dev",
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
-}
