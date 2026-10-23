@@ -26,6 +26,47 @@ function requireDoctor(req, res, next) {
   next();
 }
 
+// A doctor may act on an emergency only if it matches their visibility rules.
+function doctorCanSee(e, user) {
+  const pd = e.patientSnapshot?.personalDoctor || {};
+  const owner = String(e.userId) === String(user.id);
+  if (owner) return true;
+  if (user.role !== "doctor") return false;
+  const ref = e.referral || {};
+  return (
+    pd.doctorId == null ||
+    String(pd.doctorId) === String(user.id) ||
+    (pd.mobile && user.mobile && String(pd.mobile) === String(user.mobile)) ||
+    (ref.toDoctorId && String(ref.toDoctorId) === String(user.id)) ||
+    (ref.byDoctorId && String(ref.byDoctorId) === String(user.id))
+  );
+}
+
+// Load an emergency the caller is allowed to act on, else null (callers respond 404).
+async function loadActableEmergency(req) {
+  const e = await Emergency.findById(req.params.id);
+  if (!e) return null;
+  return doctorCanSee(e, req.user) ? e : null;
+}
+
+// Reusable SOS visibility filter for doctor-role listings. A doctor sees an
+// emergency iff ANY of: the patient has no linked family doctor (legacy
+// broadcast), the family doctor is them (personalDoctor.doctorId), the picked
+// doctor's mobile matches (legacy pick without doctorId), or they are on the
+// referral (referring or receiving).
+function doctorVisibilityFilter(user) {
+  const conditions = [
+    { "patientSnapshot.personalDoctor.doctorId": null },
+    { "patientSnapshot.personalDoctor.doctorId": user.id },
+    { "referral.toDoctorId": user.id },
+    { "referral.byDoctorId": user.id }
+  ];
+  if (user.mobile) {
+    conditions.push({ "patientSnapshot.personalDoctor.mobile": user.mobile });
+  }
+  return { $or: conditions };
+}
+
 router.post("/sos", async (req, res) => {
   try {
     const { patientId, vehicleId, emergencyType, location } = req.body;
@@ -36,6 +77,10 @@ router.post("/sos", async (req, res) => {
     let vehicle = null;
     if (vehicleId && mongoose.Types.ObjectId.isValid(vehicleId)) {
       vehicle = await Vehicle.findOne({ _id: vehicleId, ownerId: req.user.id });
+    }
+    let meUser = req.user;
+    if (!patient && !Array.isArray(meUser.emergencyContacts)) {
+      meUser = (await User.findById(req.user.id)) || meUser;
     }
     const snapshot = patient
       ? {
@@ -67,9 +112,11 @@ router.post("/sos", async (req, res) => {
           diseases: [],
           allergies: [],
           personalDoctor: {},
-          emergencyContacts: [
-            { name: req.user.name, mobile: req.user.mobile, relation: "Self" }
-          ],
+          emergencyContacts: (meUser.emergencyContacts || []).map((c) => ({
+            name: c.name,
+            mobile: c.mobile,
+            relation: c.relation || "Family"
+          })),
           healthTracker: []
         };
 
@@ -104,21 +151,25 @@ router.post("/sos", async (req, res) => {
 });
 
 router.get("/", async (req, res) => {
-  const filter = req.user.role === "doctor" ? {} : { userId: req.user.id };
+  const filter = req.user.role === "doctor" ? doctorVisibilityFilter(req.user) : { userId: req.user.id };
   const emergencies = await Emergency.find(filter).sort({ createdAt: -1 }).limit(50);
   res.json(emergencies);
 });
 
 router.get("/active", async (req, res) => {
   const filter = { status: { $in: ["active", "acknowledged", "referred"] } };
-  if (req.user.role !== "doctor") filter.userId = req.user.id;
+  if (req.user.role !== "doctor") {
+    filter.userId = req.user.id;
+  } else {
+    Object.assign(filter, doctorVisibilityFilter(req.user));
+  }
   const emergencies = await Emergency.find(filter).sort({ createdAt: -1 });
   res.json(emergencies);
 });
 
 router.get("/stats", async (req, res) => {
   try {
-    const filter = req.user.role === "doctor" ? {} : { userId: req.user.id };
+    const filter = req.user.role === "doctor" ? doctorVisibilityFilter(req.user) : { userId: req.user.id };
     const [total, active, resolved] = await Promise.all([
       Emergency.countDocuments(filter),
       Emergency.countDocuments({ ...filter, status: { $in: ["active", "acknowledged", "referred"] } }),
@@ -131,7 +182,7 @@ router.get("/stats", async (req, res) => {
 });
 
 router.post("/:id/acknowledge", async (req, res) => {
-  const e = await Emergency.findById(req.params.id);
+  const e = await loadActableEmergency(req);
   if (!e) return res.status(404).json({ error: "Emergency not found" });
   if (CLOSED_STATUSES.includes(e.status)) {
     return res.status(400).json({ error: "Emergency already closed" });
@@ -143,7 +194,7 @@ router.post("/:id/acknowledge", async (req, res) => {
 });
 
 router.post("/:id/approve", requireDoctor, async (req, res) => {
-  const e = await Emergency.findById(req.params.id);
+  const e = await loadActableEmergency(req);
   if (!e) return res.status(404).json({ error: "Emergency not found" });
   if (CLOSED_STATUSES.includes(e.status)) {
     return res.status(400).json({ error: "Emergency already closed" });
@@ -167,7 +218,7 @@ router.post("/:id/refer", requireDoctor, async (req, res) => {
     if (!target) {
       return res.status(400).json({ error: "Target user is not a doctor" });
     }
-    const e = await Emergency.findById(req.params.id);
+    const e = await loadActableEmergency(req);
     if (!e) return res.status(404).json({ error: "Emergency not found" });
     if (CLOSED_STATUSES.includes(e.status)) {
       return res.status(400).json({ error: "Emergency already closed" });
@@ -196,6 +247,8 @@ router.post("/:id/resolve", async (req, res) => {
     const { doctorNote } = req.body;
     const update = { status: "resolved", resolvedAt: new Date() };
     if (doctorNote) update.doctorNote = doctorNote;
+    const allowed = await loadActableEmergency(req);
+    if (!allowed) return res.status(404).json({ error: "Emergency not found" });
     // Atomic guard: only an open emergency can be closed, so a concurrent
     // resolve/cancel by a colleague loses the race with 400 instead of 200.
     const e = await Emergency.findOneAndUpdate(
@@ -222,6 +275,8 @@ router.post("/:id/resolve", async (req, res) => {
 
 router.post("/:id/cancel", async (req, res) => {
   try {
+    const allowed = await loadActableEmergency(req);
+    if (!allowed) return res.status(404).json({ error: "Emergency not found" });
     const e = await Emergency.findOneAndUpdate(
       { _id: req.params.id, status: { $nin: CLOSED_STATUSES } },
       { $set: { status: "cancelled" } },

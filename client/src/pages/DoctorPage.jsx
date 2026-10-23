@@ -7,7 +7,10 @@ function useRingtone(active) {
 
   useEffect(() => {
     if (!active) {
-      if (stopRef.current) stopRef.current();
+      if (stopRef.current) {
+        stopRef.current();
+        stopRef.current = null;
+      }
       return;
     }
     try {
@@ -41,7 +44,10 @@ function useRingtone(active) {
       };
     } catch {}
     return () => {
-      if (stopRef.current) stopRef.current();
+      if (stopRef.current) {
+        stopRef.current();
+        stopRef.current = null;
+      }
     };
   }, [active]);
 }
@@ -78,33 +84,58 @@ export default function DoctorPage({ user }) {
   const [referNote, setReferNote] = useState("");
   const [referErr, setReferErr] = useState("");
 
+  const aliveRef = useRef(true);
+  const [busy, setBusy] = useState(false);
+  const busyRef = useRef(false);
+
+  function startAction() {
+    if (busyRef.current) return false;
+    busyRef.current = true;
+    setBusy(true);
+    return true;
+  }
+  function endAction() {
+    busyRef.current = false;
+    setBusy(false);
+  }
+
   async function load() {
     try {
       const list = await api("/emergencies");
+      if (!aliveRef.current) return;
       setEmergencies(list);
       setSelected((sel) => (sel ? list.find((e) => e._id === sel._id) || null : sel));
+      setError("");
     } catch (e) {
+      if (!aliveRef.current) return;
       setError(e.message);
     }
   }
 
   useEffect(() => {
+    aliveRef.current = true;
     load();
     const t = setInterval(load, 5000);
-    return () => clearInterval(t);
+    return () => {
+      aliveRef.current = false;
+      clearInterval(t);
+    };
   }, []);
 
   const ringing = emergencies.filter((e) => shouldRing(e, myId) && !dismissedRings[e._id]);
   useRingtone(ringing.length > 0);
 
   function showFlash(id, msg) {
+    if (!aliveRef.current) return;
     setFlash({ id, msg });
     setTimeout(() => {
+      if (!aliveRef.current) return;
       setFlash((f) => (f && f.id === id && f.msg === msg ? null : f));
     }, 4000);
   }
 
   async function approve(id) {
+    if (!startAction()) return;
     try {
       await api(`/emergencies/${id}/approve`, { method: "POST" });
       setDismissedRings((d) => ({ ...d, [id]: true }));
@@ -112,11 +143,14 @@ export default function DoctorPage({ user }) {
       load();
     } catch (err) {
       setError(err.message);
+    } finally {
+      endAction();
     }
   }
 
   async function cancelEmergency(id) {
     if (!window.confirm("Cancel this emergency? The SOS will be closed and the device cleared.")) return;
+    if (!startAction()) return;
     try {
       await api(`/emergencies/${id}/cancel`, { method: "POST" });
       setDismissedRings((d) => ({ ...d, [id]: true }));
@@ -125,6 +159,8 @@ export default function DoctorPage({ user }) {
       load();
     } catch (err) {
       setError(err.message);
+    } finally {
+      endAction();
     }
   }
 
@@ -147,6 +183,7 @@ export default function DoctorPage({ user }) {
       return;
     }
     setReferErr("");
+    if (!startAction()) return;
     try {
       const target = (doctors || []).find((d) => String(d.id) === String(referTarget));
       await api(`/emergencies/${id}/refer`, {
@@ -160,10 +197,13 @@ export default function DoctorPage({ user }) {
       load();
     } catch (e) {
       setReferErr(e.message);
+    } finally {
+      endAction();
     }
   }
 
   async function resolve(id) {
+    if (!startAction()) return;
     try {
       await api(`/emergencies/${id}/resolve`, { method: "POST", body: { doctorNote: note } });
       setDismissedRings((d) => ({ ...d, [id]: true }));
@@ -171,6 +211,8 @@ export default function DoctorPage({ user }) {
       load();
     } catch (err) {
       setError(err.message);
+    } finally {
+      endAction();
     }
   }
 
@@ -198,11 +240,12 @@ export default function DoctorPage({ user }) {
             <b>📞 INCOMING EMERGENCY — {ringing.length} active</b>
             <div className="small">Patient details are below. Approve, refer or cancel.</div>
             <div className="row-actions" style={{ marginTop: 8 }}>
-              <button className="btn primary small-btn approve" onClick={() => approve(ringing[0]._id)}>
+              <button className="btn primary small-btn approve" disabled={busy} onClick={() => approve(ringing[0]._id)}>
                 Approve
               </button>
               <button
                 className="btn ghost small-btn"
+                disabled={busy}
                 onClick={() => {
                   setSelected(ringing[0]);
                   openRefer(ringing[0]._id);
@@ -210,14 +253,16 @@ export default function DoctorPage({ user }) {
               >
                 Refer
               </button>
-              <button className="btn danger small-btn" onClick={() => cancelEmergency(ringing[0]._id)}>
+              <button className="btn danger small-btn" disabled={busy} onClick={() => cancelEmergency(ringing[0]._id)}>
                 Cancel
               </button>
             </div>
           </div>
           <button
             className="btn danger"
-            onClick={() => setDismissedRings(Object.fromEntries(ringing.map((e) => [e._id, true])))}
+            onClick={() =>
+              setDismissedRings((d) => ({ ...d, ...Object.fromEntries(ringing.map((e) => [e._id, true])) }))
+            }
           >
             Mute ring
           </button>
@@ -264,12 +309,13 @@ export default function DoctorPage({ user }) {
                       onClick={(ev) => ev.stopPropagation()}
                     >
                       {e.status === "active" && (
-                        <button className="btn primary small-btn" onClick={() => approve(e._id)}>
+                        <button className="btn primary small-btn" disabled={busy} onClick={() => approve(e._id)}>
                           Approve
                         </button>
                       )}
                       <button
                         className="btn ghost small-btn"
+                        disabled={busy}
                         onClick={() => {
                           setSelected(e);
                           openRefer(e._id);
@@ -471,7 +517,7 @@ export default function DoctorPage({ user }) {
                   />
                   <div className="row-actions">
                     {sel.status === "active" && (
-                      <button className="btn primary" onClick={() => approve(sel._id)}>
+                      <button className="btn primary" disabled={busy} onClick={() => approve(sel._id)}>
                         Approve
                       </button>
                     )}
@@ -481,15 +527,16 @@ export default function DoctorPage({ user }) {
                     {selReferable && (
                       <button
                         className="btn ghost"
+                        disabled={busy}
                         onClick={() => (referFor === sel._id ? setReferFor(null) : openRefer(sel._id))}
                       >
                         {referFor === sel._id ? "Close refer" : "Refer"}
                       </button>
                     )}
-                    <button className="btn danger" onClick={() => cancelEmergency(sel._id)}>
+                    <button className="btn danger" disabled={busy} onClick={() => cancelEmergency(sel._id)}>
                       Cancel
                     </button>
-                    <button className="btn primary" onClick={() => resolve(sel._id)}>
+                    <button className="btn primary" disabled={busy} onClick={() => resolve(sel._id)}>
                       Resolve &amp; clear device
                     </button>
                     {flash?.id === sel._id && <span className="badge ok">✓ {flash.msg}</span>}
@@ -537,7 +584,7 @@ export default function DoctorPage({ user }) {
                       <div className="row-actions">
                         <button
                           className="btn primary small-btn"
-                          disabled={!referTarget}
+                          disabled={busy || !referTarget}
                           onClick={() => sendReferral(sel._id)}
                         >
                           Send referral

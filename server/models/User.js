@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema(
       specialization: { type: String, default: "" },
       clinicAddress: { type: String, default: "" }
     },
+    emergencyContacts: [{ name: String, mobile: String, relation: String }],
     knownIps: [{ type: String }],
     lastLoginAt: { type: Date }
   },

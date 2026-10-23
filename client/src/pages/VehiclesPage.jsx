@@ -229,7 +229,9 @@ export default function VehiclesPage({ user }) {
                 </table>
                 <h3 className="sub">Assign patient to this car</h3>
                 <select
-                  value={selected.assignedPatientId || ""}
+                  value={typeof selected.assignedPatientId === "object" && selected.assignedPatientId
+                    ? selected.assignedPatientId._id
+                    : selected.assignedPatientId || ""}
                   onChange={(e) => assignPatient(e.target.value)}
                 >
                   <option value="">— None —</option>
@@ -241,7 +243,13 @@ export default function VehiclesPage({ user }) {
                 </select>
                 {selected.assignedPatientId && (
                   <p className="hint">
-                    Assigned: {patients.find((p) => p._id === selected.assignedPatientId)?.name || "patient"}
+                    Assigned: {
+                      (typeof selected.assignedPatientId === "object" && selected.assignedPatientId.name)
+                        || patients.find(
+                            (p) => p._id === (selected.assignedPatientId._id || selected.assignedPatientId)
+                          )?.name
+                        || "patient"
+                    }
                   </p>
                 )}
               </>

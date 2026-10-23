@@ -1,0 +1,231 @@
+﻿/* Ambulance Loader - scoped entirely under .ma-loader.
+   One centered loader: a 3D vehicle drives an open arc of road around a medical
+   globe. The road is split in two: on part 1 it is a car, in the gap it passes
+   the transform gate, on part 2 it comes out as an ambulance.
+   All brand colours live in the variables below (no :root leakage - the app
+   keeps its own palette). */
+
+.ma-loader {
+  --bg: #FFF8EE;
+  --ink: #3A2218;
+  --muted: #6E6A62;
+  --brand: #FF6B35;
+  --brand-2: #C4471C;
+  --accent: #FFC93C;
+  --siren: #FF3B4E;
+  --road: #3A2F2C;
+  --road-edge: #F6B93B;
+  --dash: #FFF8EE;
+  --globe-1: #FFE8D2;
+  --globe-2: #FFC08A;
+  --land: rgba(255, 150, 40, 0.2);
+  --globe-line: rgba(58, 34, 24, 0.16);
+  --globe-cross: rgba(255, 255, 255, 0.9);
+  --halo: rgba(255, 201, 60, 0.28);
+  --shadow: rgba(58, 34, 24, 0.3);
+  --car-body: #F4622A;
+  --car-dark: #C2421A;
+  --amb-body: #FFFFFF;
+  --amb-cab: #FFF0E0;
+  --amb-trim: #FF3B4E;
+  --ocean-1: #FF8A7A;
+  --ocean-2: #F25C54;
+  --ocean-3: #C23B3B;
+  --land-1: #FFFFFF;
+  --land-2: #FFF6DF;
+  --atmo: #FFC9A3;
+  --font-display: "Outfit", "Segoe UI", system-ui, sans-serif;
+  --font-body: "DM Sans", "Segoe UI", system-ui, sans-serif;
+
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  min-height: 100vh;
+  width: 100%;
+  max-width: 460px;
+  min-width: 0;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  padding-block: 24px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+.ma-loader .title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(26px, 6vw, 34px);
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  text-align: center;
+  line-height: 1.1;
+}
+.ma-loader .dots i {
+  display: inline-block;
+  width: 0.2em;
+  height: 0.2em;
+  margin-left: 0.12em;
+  border-radius: 50%;
+  background: var(--brand);
+  animation: loaderDot 1.2s ease-in-out infinite;
+}
+.ma-loader .dots i:nth-child(2) { animation-delay: 0.18s; }
+.ma-loader .dots i:nth-child(3) { animation-delay: 0.36s; }
+.ma-loader .dots i:nth-child(1) { background: #FF6B35; }
+.ma-loader .dots i:nth-child(2) { background: #FFC93C; }
+.ma-loader .dots i:nth-child(3) { background: #E8283C; }
+@keyframes loaderDot {
+  0%, 70%, 100% { opacity: 0.25; transform: translateY(0); }
+  35% { opacity: 1; transform: translateY(-0.18em); }
+}
+.ma-loader .sub {
+  margin: 0;
+  margin-top: 0 !important;
+  font-size: 15px;
+  color: var(--muted);
+  text-align: center;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+/* Scene: stacked layers so the ambulance can pass behind and in front of the globe */
+.ma-loader .stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 480 / 190;
+  transform: rotate(-8deg);
+  margin-bottom: 6px;
+}
+.ma-loader .layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; display: block; }
+.ma-loader .l-back { z-index: 1; }
+.ma-loader .l-globe { z-index: 3; }
+.ma-loader .l-front { z-index: 4; }
+.ma-loader .road { fill: var(--road); }
+.ma-loader .edge { fill: none; stroke: var(--road-edge); stroke-width: 1.8; stroke-linejoin: round; }
+.ma-loader .dash { fill: var(--dash); opacity: 0.85; }
+.ma-loader .grid { fill: none; stroke: var(--globe-line); stroke-width: 1.5; }
+.ma-loader .land { fill: var(--land); }
+.ma-loader .cross { fill: var(--globe-cross); }
+.ma-loader .cap { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-linecap: round; }
+.ma-loader .pad { fill: var(--accent); opacity: 0.2; }
+.ma-loader .grp { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d; }
+.ma-loader .fx { position: absolute; left: 0; top: -28px; width: 0; height: 0; pointer-events: none; }
+.ma-loader .ring { position: absolute; left: -45px; top: -45px; width: 90px; height: 90px; box-sizing: border-box; border-radius: 50%; border: 3px solid var(--accent); opacity: 0; }
+.ma-loader .ring.r2 { border-color: var(--siren); }
+.ma-loader .sp { position: absolute; left: -4px; top: -4px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px 2px var(--accent); opacity: 0; }
+.ma-loader .sp:nth-child(3n) { background: var(--siren); box-shadow: 0 0 8px 2px var(--siren); }
+.ma-loader .sp:nth-child(3n+1) { background: #fff; box-shadow: 0 0 8px 2px var(--brand); }
+
+/* Ambulance (3D) */
+.ma-loader .amb { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 2; transform-origin: 0 0; }
+.ma-loader .shadow {
+  position: absolute; left: 0; top: 0;
+  background: var(--shadow);
+  border-radius: 50%;
+  filter: blur(3px);
+}
+.ma-loader .persp { position: absolute; left: 0; top: 0; width: 0; height: 0; perspective: 520px; perspective-origin: 0 -26px; }
+.ma-loader .rig { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d; }
+.ma-loader .p { position: absolute; left: 0; top: 0; transform-origin: 0 0; backface-visibility: hidden; }
+.ma-loader .p::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit;
+  background: #24120A; opacity: var(--sh, 0); pointer-events: none;
+}
+.ma-loader .p.noov::after { display: none; }
+.ma-loader .p svg { display: block; }
+.ma-loader .p .sh { fill: #24120A; fill-opacity: var(--sh, 0); }
+.ma-loader .roofc { background: var(--amb-body); }
+.ma-loader .roofl { background: var(--amb-cab); }
+.ma-loader .hood { background: var(--amb-cab); }
+.ma-loader .step { background: var(--amb-trim); }
+.ma-loader .croof, .ma-loader .chood { background: var(--car-body); }
+.ma-loader .cstripe { background: #FFE8C2; }
+.ma-loader .k1 { fill: var(--amb-body); }
+.ma-loader .k2 { fill: var(--amb-cab); }
+.ma-loader .k3 { fill: var(--amb-trim); }
+.ma-loader .kg { fill: #3A2B2E; stroke: #3A2B2E; stroke-width: 1.6; stroke-linejoin: round; }
+.ma-loader .rr { border-radius: 5px; overflow: hidden; }
+.ma-loader .rf { border-radius: 0 6px 6px 0; overflow: hidden; }
+.ma-loader .rb { border-radius: 0 0 6px 6px; overflow: hidden; }
+.ma-loader .cs { background: var(--car-dark); }
+.ma-loader .c1 { fill: var(--car-body); }
+.ma-loader .c2 { fill: var(--car-dark); }
+.ma-loader .glass { background: linear-gradient(140deg, #7A6065 0%, #4A3538 55%, #2E2124 100%); }
+.ma-loader .tire { background: #1F1618; border-radius: 50%; backface-visibility: visible; }
+.ma-loader .rim {
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--brand-2) 0 18%, #FFE9D2 20% 62%, #1F1618 64% 100%);
+}
+.ma-loader .hub {
+  position: absolute; inset: 1px; border-radius: 50%;
+  background:
+    linear-gradient(var(--brand-2), var(--brand-2)) center / 100% 1.6px no-repeat,
+    linear-gradient(var(--brand-2), var(--brand-2)) center / 1.6px 100% no-repeat;
+  animation: loaderSpin 0.45s linear infinite;
+}
+@keyframes loaderSpin { to { transform: rotate(360deg); } }
+.ma-loader .lt { backface-visibility: visible; }
+.ma-loader .lr { background: #FF2D55; animation: loaderFa 0.5s steps(1, end) infinite; }
+.ma-loader .lb { background: #FFC233; animation: loaderFb 0.5s steps(1, end) infinite; }
+@keyframes loaderFa { 0% { opacity: 1; box-shadow: 0 0 9px 3px rgba(255, 45, 85, 0.85); } 50% { opacity: 0.3; box-shadow: none; } }
+@keyframes loaderFb { 0% { opacity: 0.3; box-shadow: none; } 50% { opacity: 1; box-shadow: 0 0 9px 3px rgba(255, 194, 51, 0.85); } }
+
+/* Globe: ocean + sliding continents + heartbeat line */
+.ma-loader .ld { stroke: rgba(58, 34, 24, 0.35); stroke-width: 0.8; }
+.ma-loader .ld:nth-child(3n+1) { fill: #FFC93C; }
+.ma-loader .ld:nth-child(3n+2) { fill: #FFE8C2; }
+.ma-loader .ld:nth-child(3n) { fill: #FFFFFF; }
+.ma-loader .cl { fill: #fff; opacity: 0.9; }
+.ma-loader .gridl { fill: none; stroke: rgba(255, 255, 255, 0.16); stroke-width: 1; }
+.ma-loader .pin circle { fill: #7A1F2B; }
+.ma-loader .pin .rip { fill: none; stroke: #7A1F2B; stroke-width: 1.2; transform-box: fill-box; transform-origin: center; animation: loaderRip 2s ease-out infinite; }
+.ma-loader .ecg0 { fill: none; stroke: rgba(58, 34, 24, 0.9); stroke-width: 3.6; stroke-linecap: round; stroke-linejoin: round; }
+.ma-loader .ecg1 { fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 26 100; filter: drop-shadow(0 0 3px #fff); animation: loaderEcg 2.2s linear infinite; }
+.ma-loader .atmo { fill: none; stroke: var(--atmo); stroke-width: 2.5; opacity: 0.6; animation: loaderBreathe 3.6s ease-in-out infinite; }
+.ma-loader .halo { transform-box: fill-box; transform-origin: center; animation: loaderPulse 3.6s ease-in-out infinite; }
+.ma-loader .drift { animation: loaderDrift 26s linear infinite; }
+.ma-loader .tw { fill: var(--accent); transform-box: fill-box; transform-origin: center; animation: loaderTwinkle 2.4s ease-in-out infinite; }
+.ma-loader .tw.t2 { fill: #FF6B35; animation-delay: 0.8s; }
+.ma-loader .tw.t3 { animation-delay: 1.5s; }
+@keyframes loaderDrift { to { transform: translateX(-288px); } }
+@keyframes loaderRip { 0% { transform: scale(1); opacity: 0.9; } 100% { transform: scale(4.5); opacity: 0; } }
+@keyframes loaderEcg { from { stroke-dashoffset: 26; } to { stroke-dashoffset: -100; } }
+@keyframes loaderBreathe { 0%, 100% { opacity: 0.45; } 50% { opacity: 0.9; } }
+@keyframes loaderPulse { 0%, 100% { transform: scale(1); opacity: 0.85; } 50% { transform: scale(1.06); opacity: 1; } }
+@keyframes loaderTwinkle { 0%, 100% { transform: scale(0.4); opacity: 0.3; } 50% { transform: scale(1.1); opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ma-loader .drift, .ma-loader .rip, .ma-loader .ecg1, .ma-loader .atmo, .ma-loader .halo, .ma-loader .tw { animation: none; }
+  .ma-loader .ecg1 { stroke-dasharray: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ma-loader .hub, .ma-loader .lr, .ma-loader .lb { animation: none; }
+  .ma-loader .dots i { animation: none; opacity: 0.7; }
+}
+
+/* Mini mode: the same scene shrunk into the app topbar brand slot.
+   Overrides the full-screen shell rules above (higher specificity), keeps the
+   brand variables, and never intercepts clicks on the header nav. */
+.ma-loader.ma-mini {
+  min-height: 0;
+  display: block;
+  width: clamp(56px, 12vw, 84px);
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  background: none;
+  gap: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+.ma-loader.ma-mini .stage { margin-bottom: 0; }

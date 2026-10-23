@@ -1,0 +1,418 @@
+<title>Ambulance Orbit Loader</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Layout: one centered loader. A 3D ambulance drives an open arc of road around a medical globe.
+     It starts small behind the globe and swings round to the front, growing as it comes. */
+  :root {
+    --bg: #FCFBF7;
+    --ink: #1B1426;
+    --muted: #6A6376;
+    --pink: #FF4F72;
+    --road: #352C4D;
+    --road-edge: #5A4C86;
+    --dash: #FCFBF7;
+    --globe-1: #F6F2FF;
+    --globe-2: #BFAEF0;
+    --land: rgba(120, 90, 210, 0.2);
+    --globe-line: rgba(74, 47, 150, 0.2);
+    --globe-cross: rgba(255, 255, 255, 0.85);
+    --halo: rgba(160, 130, 240, 0.28);
+    --shadow: rgba(36, 29, 56, 0.34);
+    --font-display: "Outfit", "Segoe UI", system-ui, sans-serif;
+    --font-body: "DM Sans", "Segoe UI", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141019;
+      --ink: #F6F1FB;
+      --muted: #A79FB5;
+      --road: #463D68;
+      --road-edge: #7A6CB0;
+      --dash: #E4DCF8;
+      --globe-1: #5B49A3;
+      --globe-2: #251B49;
+      --land: rgba(200, 180, 255, 0.16);
+      --globe-line: rgba(233, 226, 255, 0.16);
+      --globe-cross: rgba(255, 255, 255, 0.55);
+      --halo: rgba(120, 90, 220, 0.3);
+      --shadow: rgba(0, 0, 0, 0.6);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141019;
+    --ink: #F6F1FB;
+    --muted: #A79FB5;
+    --road: #463D68;
+    --road-edge: #7A6CB0;
+    --dash: #E4DCF8;
+    --globe-1: #5B49A3;
+    --globe-2: #251B49;
+    --land: rgba(200, 180, 255, 0.16);
+    --globe-line: rgba(233, 226, 255, 0.16);
+    --globe-cross: rgba(255, 255, 255, 0.55);
+    --halo: rgba(120, 90, 220, 0.3);
+    --shadow: rgba(0, 0, 0, 0.6);
+    color-scheme: dark;
+  }
+
+  html, body { height: 100%; }
+  body {
+    box-sizing: border-box;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    display: grid;
+    place-items: center;
+    padding-block: 24px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .loader {
+    width: 100%;
+    max-width: 460px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(26px, 6vw, 34px);
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+    text-align: center;
+  }
+  .dots i {
+    display: inline-block;
+    width: 0.2em;
+    height: 0.2em;
+    margin-left: 0.12em;
+    border-radius: 50%;
+    background: var(--pink);
+    animation: dot 1.2s ease-in-out infinite;
+  }
+  .dots i:nth-child(2) { animation-delay: 0.18s; }
+  .dots i:nth-child(3) { animation-delay: 0.36s; }
+  @keyframes dot {
+    0%, 70%, 100% { opacity: 0.25; transform: translateY(0); }
+    35% { opacity: 1; transform: translateY(-0.18em); }
+  }
+  .sub { margin: 0; font-size: 15px; color: var(--muted); text-align: center; }
+
+  /* Scene: stacked layers so the ambulance can pass behind and in front of the globe */
+  .stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 480 / 190;
+    transform: rotate(-8deg);
+    margin-bottom: 6px;
+  }
+  .layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; display: block; }
+  .l-back { z-index: 1; }
+  .l-globe { z-index: 3; }
+  .l-front { z-index: 4; }
+  .road { fill: var(--road); }
+  .edge { fill: none; stroke: var(--road-edge); stroke-width: 1.3; stroke-linejoin: round; }
+  .dash { fill: var(--dash); opacity: 0.85; }
+  .grid { fill: none; stroke: var(--globe-line); stroke-width: 1.5; }
+  .land { fill: var(--land); }
+  .cross { fill: var(--globe-cross); }
+
+  /* Ambulance (3D) */
+  .amb { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 2; transform-origin: 0 0; }
+  .shadow {
+    position: absolute; left: 0; top: 0;
+    background: var(--shadow);
+    border-radius: 50%;
+    filter: blur(3px);
+  }
+  .persp { position: absolute; left: 0; top: 0; width: 0; height: 0; perspective: 520px; perspective-origin: 0 -26px; }
+  .rig { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d; }
+  .p { position: absolute; left: 0; top: 0; transform-origin: 0 0; backface-visibility: hidden; }
+  .p::after {
+    content: ""; position: absolute; inset: 0; border-radius: inherit;
+    background: #1a0f33; opacity: var(--sh, 0); pointer-events: none;
+  }
+  .p.noov::after { display: none; }
+  .p svg { display: block; }
+  .p .sh { fill: #1a0f33; fill-opacity: var(--sh, 0); }
+  .roofc { background: #FF6A88; }
+  .roofl { background: #F3EFFF; }
+  .hood { background: #EFEAFF; }
+  .step { background: #FF4F72; }
+  .glass { background: linear-gradient(140deg, #C4EBFF 0%, #7CC3F5 55%, #5AA9E6 100%); }
+  .tire { background: #2B2147; border-radius: 50%; backface-visibility: visible; }
+  .rim {
+    border-radius: 50%;
+    background: radial-gradient(circle, #4A2F96 0 18%, #CFC3F5 20% 62%, #2B2147 64% 100%);
+  }
+  .hub {
+    position: absolute; inset: 1px; border-radius: 50%;
+    background:
+      linear-gradient(#4A2F96, #4A2F96) center / 100% 1.6px no-repeat,
+      linear-gradient(#4A2F96, #4A2F96) center / 1.6px 100% no-repeat;
+    animation: spin 0.45s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .lt { backface-visibility: visible; }
+  .lr { background: #FF2D55; animation: fa 0.5s steps(1, end) infinite; }
+  .lb { background: #2D8CFF; animation: fb 0.5s steps(1, end) infinite; }
+  @keyframes fa { 0% { opacity: 1; box-shadow: 0 0 9px 3px rgba(255, 45, 85, 0.85); } 50% { opacity: 0.3; box-shadow: none; } }
+  @keyframes fb { 0% { opacity: 0.3; box-shadow: none; } 50% { opacity: 1; box-shadow: 0 0 9px 3px rgba(45, 140, 255, 0.85); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hub, .lr, .lb { animation: none; }
+    .dots i { animation: none; opacity: 0.7; }
+  }
+</style>
+
+<main class="loader">
+  <div class="stage" id="stage" aria-hidden="true">
+    <!-- back half of the road, behind the globe -->
+    <svg class="layer l-back" viewBox="0 48 480 190" focusable="false">
+      <path id="bRoad" class="road"/>
+      <path id="bEdgeO" class="edge"/>
+      <path id="bEdgeI" class="edge"/>
+      <path id="bDash" class="dash"/>
+    </svg>
+
+    <!-- ambulance; its stacking position switches between behind and in front of the globe -->
+    <div class="amb" id="amb">
+      <div class="shadow" id="shadow"></div>
+      <div class="persp"><div class="rig" id="rig"></div></div>
+    </div>
+
+    <!-- globe -->
+    <svg class="layer l-globe" viewBox="0 48 480 190" focusable="false">
+      <defs>
+        <radialGradient id="halo" cx="50%" cy="50%" r="50%">
+          <stop offset="0.7" stop-color="var(--halo)"/>
+          <stop offset="1" stop-color="var(--halo)" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="globeFill" cx="36%" cy="30%" r="80%">
+          <stop offset="0" stop-color="var(--globe-1)"/>
+          <stop offset="1" stop-color="var(--globe-2)"/>
+        </radialGradient>
+        <radialGradient id="limb" cx="38%" cy="32%" r="78%">
+          <stop offset="0.55" stop-color="#2a1565" stop-opacity="0"/>
+          <stop offset="1" stop-color="#2a1565" stop-opacity="0.38"/>
+        </radialGradient>
+        <clipPath id="cGlobe"><circle cx="240" cy="140" r="72"/></clipPath>
+      </defs>
+      <circle cx="240" cy="140" r="92" fill="url(#halo)"/>
+      <circle cx="240" cy="140" r="72" fill="url(#globeFill)"/>
+      <g clip-path="url(#cGlobe)">
+        <path class="land" d="M186,104 q16,-18 40,-8 q14,10 2,24 q-14,10 -26,4 q-20,-2 -16,-20z"/>
+        <path class="land" d="M262,150 q22,-10 38,6 q8,18 -10,26 q-20,4 -30,-8 q-6,-14 2,-24z"/>
+        <path class="land" d="M200,170 q12,-6 22,2 q6,12 -6,18 q-14,0 -18,-10z"/>
+        <g class="grid">
+          <ellipse cx="240" cy="140" rx="30" ry="72"/>
+          <ellipse cx="240" cy="140" rx="56" ry="72"/>
+          <line x1="240" y1="68" x2="240" y2="212"/>
+          <path d="M177.6,104 Q240,122 302.4,104"/>
+          <path d="M168,140 Q240,158 312,140"/>
+          <path d="M177.6,176 Q240,194 302.4,176"/>
+        </g>
+      </g>
+      <circle cx="240" cy="140" r="72" fill="url(#limb)"/>
+      <g class="cross">
+        <rect x="233" y="112" width="14" height="40" rx="4"/>
+        <rect x="220" y="125" width="40" height="14" rx="4"/>
+      </g>
+      <ellipse cx="206" cy="94" rx="17" ry="8" fill="#fff" opacity="0.28" transform="rotate(-30 206 94)"/>
+    </svg>
+
+    <!-- front half of the road, in front of the globe -->
+    <svg class="layer l-front" viewBox="0 48 480 190" focusable="false">
+      <path id="fRoad" class="road"/>
+      <path id="fEdgeO" class="edge"/>
+      <path id="fEdgeI" class="edge"/>
+      <path id="fDash" class="dash"/>
+    </svg>
+  </div>
+
+  <h1 class="title">MyAmbulance<span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></h1>
+  <p class="sub" role="status">Checking your session</p>
+</main>
+
+<script>
+(function () {
+  var FROZEN = null; // a number 0..1 pins the animation for testing; null runs it
+
+  /* ---------- scene geometry ---------- */
+  var CX = 240, CY = 140, RX = 190, RY = 64, K = RY / RX;
+  var T0 = Math.PI + 0.08;          // arc starts hidden behind the globe, back left
+  var T1 = 2 * Math.PI + 0.5;       // arc ends at the front right, open, not joined to the start
+  var TM = 1.5 * Math.PI;           // left-most point: the road passes from behind to in front of the globe
+
+  function smooth(x) { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); }
+  function F(t) { return (Math.cos(t) + 1) / 2; }
+  function half(t) {
+    var u = (t - T0) / (T1 - T0);
+    var taper = 0.18 + 0.82 * Math.min(smooth(u / 0.09), smooth((1 - u) / 0.14));
+    return (3.5 + 16 * Math.pow(F(t), 1.15)) * taper;
+  }
+  function P(t, w) { return [CX + (RX + w) * Math.sin(t), CY + (RY + w * K) * Math.cos(t)]; }
+  function pts(a) { return a.map(function (p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join('L'); }
+
+  function buildRoad(ta, tb, ids) {
+    var n = 48, o = [], i = [];
+    for (var k = 0; k <= n; k++) {
+      var t = ta + (tb - ta) * k / n, w = half(t);
+      o.push(P(t, w)); i.push(P(t, -w));
+    }
+    document.getElementById(ids[0]).setAttribute('d', 'M' + pts(o) + 'L' + pts(i.slice().reverse()) + 'Z');
+    document.getElementById(ids[1]).setAttribute('d', 'M' + pts(o));
+    document.getElementById(ids[2]).setAttribute('d', 'M' + pts(i));
+  }
+  buildRoad(T0, TM, ['bRoad', 'bEdgeO', 'bEdgeI']);
+  buildRoad(TM, T1, ['fRoad', 'fEdgeO', 'fEdgeI']);
+
+  var dB = '', dF = '';
+  for (var t = T0 + 0.17; t + 0.06 < T1 - 0.12; t += 0.12) {
+    var dw = 0.5 + 1.2 * F(t);
+    var q = 'M' + pts([P(t, dw), P(t + 0.06, dw), P(t + 0.06, -dw), P(t, -dw)]) + 'Z';
+    if (Math.cos(t) < 0) dB += q; else dF += q;
+  }
+  document.getElementById('bDash').setAttribute('d', dB);
+  document.getElementById('fDash').setAttribute('d', dF);
+
+  /* ---------- 3D ambulance (model units: x forward, y down, z toward viewer; ground at y = 0) ---------- */
+  var rig = document.getElementById('rig');
+  var shaded = [];
+
+  function plane(o) {
+    var el = document.createElement('div');
+    el.className = 'p ' + (o.cls || '');
+    el.style.width = o.w + 'px';
+    el.style.height = o.h + 'px';
+    el.style.transform = 'translate3d(' + o.x + 'px,' + o.y + 'px,' + o.z + 'px) ' + (o.r || '') +
+      ' translate(' + (-o.w / 2) + 'px,' + (-o.h / 2) + 'px)';
+    if (o.html) el.innerHTML = o.html;
+    if (o.n) shaded.push({ el: el, n: o.n });
+    rig.appendChild(el);
+    return el;
+  }
+  function box(cx, cy, cz, w, h, d, cls) {
+    plane({ w: w, h: d, x: cx, y: cy - h / 2, z: cz, r: 'rotateX(90deg)', cls: cls, n: [0, -1, 0] });
+    plane({ w: w, h: h, x: cx, y: cy, z: cz + d / 2, cls: cls, n: [0, 0, 1] });
+    plane({ w: w, h: h, x: cx, y: cy, z: cz - d / 2, r: 'rotateY(180deg)', cls: cls, n: [0, 0, -1] });
+    plane({ w: d, h: h, x: cx + w / 2, y: cy, z: cz, r: 'rotateY(90deg)', cls: cls, n: [1, 0, 0] });
+    plane({ w: d, h: h, x: cx - w / 2, y: cy, z: cz, r: 'rotateY(-90deg)', cls: cls, n: [-1, 0, 0] });
+  }
+
+  // side profile as an SVG texture, drawn in model units
+  function side(flip) {
+    var g = flip ? ' transform="translate(2,0) scale(-1,1)"' : '';
+    return '<svg viewBox="-50 -50 102 40" width="102" height="40"><g' + g + '>' +
+      '<polygon points="-50,-10 -50,-50 10,-50 10,-10" fill="#FF4F72"/>' +
+      '<polygon points="10,-10 10,-40 22,-40 36,-24 52,-22 52,-10" fill="#F3EFFF"/>' +
+      '<rect x="-50" y="-48" width="60" height="2.2" fill="#fff" opacity=".75"/>' +
+      '<polygon points="13.5,-37.5 21,-37.5 31,-26 13.5,-26" fill="#8ED2FF"/>' +
+      '<line x1="-6" y1="-46" x2="-6" y2="-16" stroke="#D83458" stroke-width=".8"/>' +
+      '<rect x="-50" y="-16" width="102" height="6" fill="#D83458"/>' +
+      '<circle cx="-30" cy="-9" r="11" fill="#241D38"/><circle cx="34" cy="-9" r="11" fill="#241D38"/>' +
+      '<rect x="-23" y="-43" width="6" height="20" fill="#fff"/><rect x="-30" y="-36" width="20" height="6" fill="#fff"/>' +
+      '<polygon class="sh" points="-50,-10 -50,-50 10,-50 10,-40 22,-40 36,-24 52,-22 52,-10"/>' +
+      '</g></svg>';
+  }
+  var rearSVG = '<svg viewBox="0 0 44 40" width="44" height="40">' +
+    '<rect width="44" height="40" fill="#FF4F72"/>' +
+    '<rect x="4" y="4" width="15" height="9" rx="1.5" fill="#8ED2FF"/><rect x="25" y="4" width="15" height="9" rx="1.5" fill="#8ED2FF"/>' +
+    '<rect x="19.5" y="15" width="5" height="18" fill="#fff"/><rect x="13" y="21.5" width="18" height="5" fill="#fff"/>' +
+    '<line x1="22" y1="2" x2="22" y2="34" stroke="#D83458" stroke-width=".8"/>' +
+    '<rect y="34" width="44" height="6" fill="#D83458"/>' +
+    '<rect x="2" y="35.5" width="6" height="3" rx="1" fill="#FF2D55"/><rect x="36" y="35.5" width="6" height="3" rx="1" fill="#FF2D55"/>' +
+    '</svg>';
+  var frontSVG = '<svg viewBox="0 0 44 12" width="44" height="12">' +
+    '<rect width="44" height="12" fill="#EFEAFF"/><rect y="8" width="44" height="4" fill="#D83458"/>' +
+    '<rect x="15" y="2" width="14" height="4" rx="1" fill="#3B2D66"/>' +
+    '<circle cx="7" cy="4.5" r="2.6" fill="#FFD76A"/><circle cx="37" cy="4.5" r="2.6" fill="#FFD76A"/>' +
+    '</svg>';
+
+  plane({ w: 102, h: 40, x: 1, y: -30, z: 22, cls: 'noov', html: side(false), n: [0, 0, 1] });
+  plane({ w: 102, h: 40, x: 1, y: -30, z: -22, r: 'rotateY(180deg)', cls: 'noov', html: side(true), n: [0, 0, -1] });
+  plane({ w: 60, h: 44, x: -20, y: -50, z: 0, r: 'rotateX(90deg)', cls: 'roofc', n: [0, -1, 0] });
+  plane({ w: 12, h: 44, x: 16, y: -40, z: 0, r: 'rotateX(90deg)', cls: 'roofl', n: [0, -1, 0] });
+  plane({ w: 21.3, h: 44, x: 29, y: -32, z: 0, r: 'rotateZ(48.8deg) rotateX(90deg)', cls: 'glass', n: [0.75, -0.66, 0] });
+  plane({ w: 16.1, h: 44, x: 44, y: -23, z: 0, r: 'rotateZ(7deg) rotateX(90deg)', cls: 'hood', n: [0.12, -0.99, 0] });
+  plane({ w: 44, h: 12, x: 52, y: -16, z: 0, r: 'rotateY(90deg)', cls: 'noov', html: frontSVG, n: [1, 0, 0] });
+  plane({ w: 44, h: 10, x: 10, y: -45, z: 0, r: 'rotateY(90deg)', cls: 'step', n: [1, 0, 0] });
+  plane({ w: 44, h: 40, x: -50, y: -30, z: 0, r: 'rotateY(-90deg)', html: rearSVG, n: [-1, 0, 0] });
+
+  box(-6, -53, -9.5, 8, 6, 17, 'lt lr');
+  box(-6, -53, 9.5, 8, 6, 17, 'lt lb');
+
+  [-30, 34].forEach(function (wx) {
+    [1, -1].forEach(function (sg) {
+      [16, 18, 20, 22].forEach(function (zz) {
+        plane({ w: 18, h: 18, x: wx, y: -9, z: sg * zz, cls: 'tire' });
+      });
+      plane({ w: 18, h: 18, x: wx, y: -9, z: sg * 22.7, r: sg < 0 ? 'rotateY(180deg)' : '',
+        cls: 'rim', html: '<i class="hub"></i>', n: [0, 0, sg] });
+    });
+  });
+
+  var LX = -0.415, LY = -0.784, LZ = 0.461; // light direction in the scene (from upper left, toward the viewer)
+  function shade(a) {
+    var c = Math.cos(a), s = Math.sin(a);
+    for (var i = 0; i < shaded.length; i++) {
+      var n = shaded[i].n;
+      var nx = n[0] * c + n[2] * s, nz = -n[0] * s + n[2] * c;
+      var lam = Math.max(0, nx * LX + n[1] * LY + nz * LZ);
+      shaded[i].el.style.setProperty('--sh', (0.42 * (1 - lam)).toFixed(3));
+    }
+  }
+
+  /* ---------- animation ---------- */
+  var stage = document.getElementById('stage');
+  var amb = document.getElementById('amb');
+  var shadow = document.getElementById('shadow');
+  var TRAVEL = 3.3, REST = 0.45;
+
+  function render(u) {
+    var e = 0.55 * u + 0.45 * (1 - (1 - u) * (1 - u));   // quick start, soft arrival
+    var t = T0 + (T1 - T0) * e;
+    var d = Math.cos(t), f = (d + 1) / 2;
+    var x = CX + RX * Math.sin(t), y = CY + RY * d;
+    var s = 0.28 + 0.66 * Math.pow(f, 1.35);               // small behind, big in front
+    var vis = Math.min(smooth(u / 0.06), smooth((1 - u) / 0.05));
+    var o = (0.6 + 0.4 * Math.pow(f, 0.6)) * vis;
+    var k = stage.clientWidth / 480;
+
+    amb.style.transform = 'translate(' + (x * k).toFixed(2) + 'px,' + ((y - 48) * k).toFixed(2) + 'px) scale(' + (s * k).toFixed(4) + ')';
+    amb.style.opacity = o.toFixed(3);
+    amb.style.zIndex = d >= 0 ? 5 : 2;
+    rig.style.transform = 'rotateX(-20deg) rotateY(' + (t * 180 / Math.PI).toFixed(2) + 'deg)';
+
+    var ca = Math.abs(Math.cos(t)), sa = Math.abs(Math.sin(t));
+    var sw = 100 * ca + 46 * sa + 14, sh = (46 * ca + 100 * sa) * 0.34 + 9;
+    shadow.style.width = sw.toFixed(1) + 'px';
+    shadow.style.height = sh.toFixed(1) + 'px';
+    shadow.style.transform = 'translate(' + (1 - sw / 2).toFixed(1) + 'px,' + (-sh / 2 + 1).toFixed(1) + 'px)';
+    shade(t);
+  }
+
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (FROZEN !== null || reduce) {
+    render(FROZEN !== null ? FROZEN : 0.78);
+    return;
+  }
+  var start = null;
+  function frame(now) {
+    if (start === null) start = now;
+    var sec = ((now - start) / 1000) % (TRAVEL + REST);
+    render(Math.min(1, sec / TRAVEL));
+    requestAnimationFrame(frame);
+  }
+  render(0.6);
+  requestAnimationFrame(frame);
+})();
+</script>

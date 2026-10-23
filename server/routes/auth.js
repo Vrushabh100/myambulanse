@@ -1,9 +1,17 @@
-﻿import express from "express";
+import express from "express";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import { validateEmergencyContacts } from "../utils/contacts.js";
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "myambulance-dev-secret-change-in-prod";
+if (!process.env.JWT_SECRET && process.env.NODE_ENV === "production") {
+  console.error("FATAL: JWT_SECRET is required in production (set it in the environment).");
+  process.exit(1);
+}
+if (!process.env.JWT_SECRET) {
+  console.warn("WARNING: using the development JWT secret — set JWT_SECRET before deploying.");
+}
 const MAX_KNOWN_IPS = 6;
 
 function sign(user) {
@@ -15,8 +23,8 @@ function sign(user) {
 }
 
 export function clientIp(req) {
-  const header = req.headers["x-forwarded-for"];
-  let ip = (typeof header === "string" ? header.split(",")[0] : "") || req.socket?.remoteAddress || "";
+  const forwarded = process.env.TRUST_PROXY === "1" ? req.headers["x-forwarded-for"] : "";
+  let ip = (typeof forwarded === "string" ? forwarded.split(",")[0] : "") || req.socket?.remoteAddress || "";
   ip = String(ip).trim();
   if (ip.toLowerCase().startsWith("::ffff:")) ip = ip.slice(7);
   if (ip === "::1" || ip === "127.0.0.1") ip = "127.0.0.1";
@@ -46,7 +54,8 @@ export function publicUser(u) {
     name: u.name,
     role: u.role,
     address: u.address,
-    doctorProfile: u.doctorProfile
+    doctorProfile: u.doctorProfile,
+    emergencyContacts: u.emergencyContacts || []
   };
 }
 
@@ -56,7 +65,7 @@ function validMobile(m) {
 
 router.post("/register", async (req, res) => {
   try {
-    const { mobile, name, role, address, doctorProfile } = req.body;
+    const { mobile, name, role, address, doctorProfile, emergencyContacts } = req.body;
     if (!validMobile(mobile)) {
       return res.status(400).json({ error: "Enter a valid 10-digit Indian mobile number" });
     }
@@ -67,13 +76,21 @@ router.post("/register", async (req, res) => {
     if (exists) {
       return res.status(409).json({ error: "Mobile number already registered. Please login." });
     }
+    const finalRole = role === "doctor" ? "doctor" : "patient";
+    let savedContacts = [];
+    if (finalRole !== "doctor") {
+      const contactCheck = validateEmergencyContacts(emergencyContacts);
+      if (contactCheck.error) return res.status(400).json({ error: contactCheck.error });
+      savedContacts = contactCheck.contacts || [];
+    }
     const ip = clientIp(req);
     const user = await User.create({
       mobile: mobile.trim(),
       name: name.trim(),
-      role: role === "doctor" ? "doctor" : "patient",
+      role: finalRole,
       address: address || "",
       doctorProfile: doctorProfile || undefined,
+      emergencyContacts: savedContacts,
       knownIps: dedupeIps([], ip),
       lastLoginAt: new Date()
     });

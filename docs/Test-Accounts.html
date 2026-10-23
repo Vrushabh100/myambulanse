@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>MyAmbulance — Test Data &amp; Demo Credentials (Confidential)</title>
+<title>MyAmbulance â€” Test Data &amp; Demo Credentials (Confidential)</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   @page { size: A4 landscape; margin: 14mm 12mm; }
@@ -51,10 +51,10 @@
 <body>
 
 <div class="title-block">
-  <div class="badge">Confidential — Testing Only</div>
-  <h1>MyAmbulance — Test Data &amp; Demo Credentials</h1>
+  <div class="badge">Confidential â€” Testing Only</div>
+  <h1>MyAmbulance â€” Test Data &amp; Demo Credentials</h1>
   <div class="meta">
-    <span><b>Date:</b> 22 October 2026</span>
+    <span><b>Date:</b> 24 October 2026</span>
     <span><b>Backend:</b> http://localhost:5050 (Express + MongoDB Atlas)</span>
     <span><b>Frontend:</b> http://localhost:5173</span>
   </div>
@@ -62,14 +62,14 @@
 
 <div class="note">
   <b>Login = mobile number only (no OTP / no password).</b>
-  Type the mobile number from the tables below on the login screen and you are in — the app matches the
+  Type the mobile number from the tables below on the login screen and you are in â€” the app matches the
   number and auto-logs you in from this machine's network. Doctors see the doctor console; patient users
-  see the patient dashboard. <b>Data lives in MongoDB Atlas (permanent)</b> — seeded once through the real
+  see the patient dashboard. <b>Data lives in MongoDB Atlas (permanent)</b> â€” seeded once through the real
   public API by <span class="mono">server/seed-test-data.mjs</span> (idempotent, safe to re-run; it never
   deletes or modifies records it did not create).
 </div>
 
-<h2>Table 1 — Doctors (log in to see the doctor console)</h2>
+<h2>Table 1 â€” Doctors (log in to see the doctor console)</h2>
 <table>
   <thead>
     <tr><th>#</th><th>Name</th><th>Mobile (login)</th><th>Degree</th><th>Specialization</th></tr>
@@ -83,7 +83,7 @@
   </tbody>
 </table>
 
-<h2>Table 2 — Patient users (each with 1 family patient, 2 emergency contacts, 3 tracker entries, 1 car)</h2>
+<h2>Table 2 â€” Patient users (each with 1 family patient, 2 emergency contacts, 3 tracker entries, 1 car)</h2>
 <table>
   <thead>
     <tr>
@@ -94,7 +94,7 @@
   <tbody>
     <tr>
       <td>1</td><td>Rahul Sharma</td><td class="mono">9822000101</td><td>Nagpur</td>
-      <td><b>Suresh Sharma</b><br><span class="muted small">Father · 62 · Male · B+</span></td>
+      <td><b>Suresh Sharma</b><br><span class="muted small">Father Â· 62 Â· Male Â· B+</span></td>
       <td class="small">Diabetes, Hypertension<br><span class="muted">Allergy: Penicillin</span></td>
       <td class="mono">MH31AB1101<br><span class="muted">Maruti Swift, White</span></td>
       <td class="mono small">TSTA01<br>TSTB01</td>
@@ -102,7 +102,7 @@
     </tr>
     <tr>
       <td>2</td><td>Priya Kulkarni</td><td class="mono">9822000102</td><td>Pune</td>
-      <td><b>Ashok Kulkarni</b><br><span class="muted small">Father · 58 · Male · O+</span></td>
+      <td><b>Ashok Kulkarni</b><br><span class="muted small">Father Â· 58 Â· Male Â· O+</span></td>
       <td class="small">Asthma<br><span class="muted">Allergy: Penicillin</span></td>
       <td class="mono">MH31AB1102<br><span class="muted">Hyundai Creta, Silver</span></td>
       <td class="mono small">TSTA02<br>TSTB02</td>
@@ -110,7 +110,7 @@
     </tr>
     <tr>
       <td>3</td><td>Amit Patil</td><td class="mono">9822000103</td><td>Nashik</td>
-      <td><b>Sunita Patil</b><br><span class="muted small">Mother · 55 · Female · A+</span></td>
+      <td><b>Sunita Patil</b><br><span class="muted small">Mother Â· 55 Â· Female Â· A+</span></td>
       <td class="small">Thyroid, Arthritis<br><span class="muted">Allergy: Sulfa drugs</span></td>
       <td class="mono">MH31AB1103<br><span class="muted">Tata Nexon, Blue</span></td>
       <td class="mono small">TSTA03<br>TSTB03</td>
@@ -118,7 +118,7 @@
     </tr>
     <tr>
       <td>4</td><td>Sneha Kulkarni</td><td class="mono">9822000104</td><td>Amravati</td>
-      <td><b>Sneha Kulkarni</b><br><span class="muted small">Self · 28 · Female · AB+</span></td>
+      <td><b>Sneha Kulkarni</b><br><span class="muted small">Self Â· 28 Â· Female Â· AB+</span></td>
       <td class="small">Migraine<br><span class="muted">Allergies: none known</span></td>
       <td class="mono">MH31AB1104<br><span class="muted">Honda City, White</span></td>
       <td class="mono small">TSTA04<br>TSTB04</td>
@@ -126,7 +126,7 @@
     </tr>
     <tr>
       <td>5</td><td>Vikram Rao</td><td class="mono">9822000105</td><td>Wardha</td>
-      <td><b>Lakshmi Rao</b><br><span class="muted small">Mother · 70 · Female · O−</span></td>
+      <td><b>Lakshmi Rao</b><br><span class="muted small">Mother Â· 70 Â· Female Â· Oâˆ’</span></td>
       <td class="small">Diabetes, Heart valve replacement 2021<br><span class="muted">Allergy: Dust</span></td>
       <td class="mono">MH31AB1105<br><span class="muted">Mahindra Scorpio, Black</span></td>
       <td class="mono small">TSTA05<br>TSTB05</td>
@@ -134,7 +134,7 @@
     </tr>
     <tr>
       <td>6</td><td>Ananya Joshi</td><td class="mono">9822000106</td><td>Chandrapur</td>
-      <td><b>Dev Joshi</b><br><span class="muted small">Father · 49 · Male · B−</span></td>
+      <td><b>Dev Joshi</b><br><span class="muted small">Father Â· 49 Â· Male Â· Bâˆ’</span></td>
       <td class="small">Hypertension<br><span class="muted">Allergy: Dust</span></td>
       <td class="mono">MH31AB1106<br><span class="muted">Maruti Baleno, Red</span></td>
       <td class="mono small">TSTA06<br>TSTB06</td>
@@ -142,7 +142,7 @@
     </tr>
     <tr>
       <td>7</td><td>Karan Mehta</td><td class="mono">9822000107</td><td>Yavatmal</td>
-      <td><b>Isha Mehta</b><br><span class="muted small">Spouse · 32 · Female · A−</span></td>
+      <td><b>Isha Mehta</b><br><span class="muted small">Spouse Â· 32 Â· Female Â· Aâˆ’</span></td>
       <td class="small">Pregnancy week 28 (normal)<br><span class="muted">Allergies: none</span></td>
       <td class="mono">MH31AB1107<br><span class="muted">Kia Sonet, Orange</span></td>
       <td class="mono small">TSTA07<br>TSTB07</td>
@@ -150,7 +150,7 @@
     </tr>
     <tr>
       <td>8</td><td>Divya Iyer</td><td class="mono">9822000108</td><td>Bhandara</td>
-      <td><b>Mohan Iyer</b><br><span class="muted small">Father · 66 · Male · O+</span></td>
+      <td><b>Mohan Iyer</b><br><span class="muted small">Father Â· 66 Â· Male Â· O+</span></td>
       <td class="small">COPD<br><span class="muted">Allergies: Dust, Smoke</span></td>
       <td class="mono">MH31AB1108<br><span class="muted">Toyota Innova, Grey</span></td>
       <td class="mono small">TSTA08<br>TSTB08</td>
@@ -158,7 +158,7 @@
     </tr>
     <tr>
       <td>9</td><td>Rohan Gupta</td><td class="mono">9822000109</td><td>Gondia</td>
-      <td><b>Aarav Gupta</b><br><span class="muted small">Son · 8 · Male · A+</span></td>
+      <td><b>Aarav Gupta</b><br><span class="muted small">Son Â· 8 Â· Male Â· A+</span></td>
       <td class="small">Asthma (mild)<br><span class="muted">Allergy: Dust</span></td>
       <td class="mono">MH31AB1109<br><span class="muted">Hyundai i10, White</span></td>
       <td class="mono small">TSTA09<br>TSTB09</td>
@@ -166,7 +166,7 @@
     </tr>
     <tr>
       <td>10</td><td>Meera Kaur</td><td class="mono">9822000110</td><td>Gadchiroli</td>
-      <td><b>Gurpreet Singh</b><br><span class="muted small">Father · 74 · Male · B+</span></td>
+      <td><b>Gurpreet Singh</b><br><span class="muted small">Father Â· 74 Â· Male Â· B+</span></td>
       <td class="small">Arthritis, Mild dementia<br><span class="muted">Allergy: Dust</span></td>
       <td class="mono">MH31AB1110<br><span class="muted">Maruti Ertiga, Silver</span></td>
       <td class="mono small">TSTA10<br>TSTB10</td>
@@ -175,7 +175,7 @@
   </tbody>
 </table>
 
-<h2>Table 3 — Demo emergencies already in the system</h2>
+<h2>Table 3 â€” Demo emergencies already in the system</h2>
 <table>
   <thead>
     <tr><th>#</th><th>Emergency ID</th><th>User who raised SOS</th><th>Family patient</th><th>Car</th><th>Type</th><th>Handled by</th><th>Status</th><th>Doctor's note</th></tr>
@@ -189,25 +189,25 @@
     <tr><td>6</td><td class="mono small">6ad91f18575fd67ca02cfdb1</td><td>Meera Kaur <span class="mono">9822000110</span></td><td>Gurpreet Singh</td><td class="mono">MH31AB1110</td><td>High fever + unconscious</td><td>Dr. Priya Deshmukh</td><td><span class="tag ok">RESOLVED</span></td><td class="small">Responding to treatment, fever down; under observation in ward</td></tr>
     <tr>
       <td>7</td><td class="mono small">6ad91f18575fd67ca02cfdbe</td><td>Amit Patil <span class="mono">9822000103</span></td><td>Sunita Patil</td><td class="mono">MH31AB1103</td><td>General emergency</td>
-      <td>Dr. Aarav Sharma → <b>Dr. Kabir Nair</b><br><span class="muted small">referral note: "In OT, you handle"</span></td>
+      <td>Dr. Aarav Sharma â†’ <b>Dr. Kabir Nair</b><br><span class="muted small">referral note: "In OT, you handle"</span></td>
       <td><span class="tag open">REFERRED (OPEN)</span></td>
-      <td class="small muted">— left open on purpose so the referral flow can be demoed —</td>
+      <td class="small muted">â€” left open on purpose so the referral flow can be demoed â€”</td>
     </tr>
   </tbody>
 </table>
 
 <div class="callout-ref">
-  <b>★ Live referral demo:</b> log in as <b>Dr. Kabir Nair — mobile 9822000005</b>. The open emergency for
+  <b>â˜… Live referral demo:</b> log in as <b>Dr. Kabir Nair â€” mobile 9822000005</b>. The open emergency for
   <b>Sunita Patil</b> (raised by Amit Patil / 9822000103) shows the banner
   <b>"REFERRED TO YOU by Dr. Aarav Sharma"</b> with the note <i>"In OT, you handle"</i>. It is deliberately
-  <b>not approved and not resolved</b> — the referring doctor (Dr. Aarav Sharma, 9822000001) sees it as
+  <b>not approved and not resolved</b> â€” the referring doctor (Dr. Aarav Sharma, 9822000001) sees it as
   "Referred to Dr Kabir Nair". Resolving or cancelling it removes the demo, so re-run
   <span class="mono">node seed-test-data.mjs</span> (from <span class="mono">server/</span>) to restore it.
 </div>
 
 <div class="footer-note">
   <div class="contact">[vrushabh.udepurkar.ai@ghrce.raisoni.net] | [+91 8007470450]</div>
-  Confidential — for testing only. Login = mobile number only; all records live in MongoDB Atlas (permanent).
+  Confidential â€” for testing only. Login = mobile number only; all records live in MongoDB Atlas (permanent).
 </div>
 
 </body>

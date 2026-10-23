@@ -2,330 +2,215 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>MyAmbulance Emergency SOS Application — System Report</title>
+<title>MyAmbulance - Simple Project Report</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-  @page { size: A4; margin: 22mm 20mm; }
+  @page { size: A4; margin: 12mm 13mm; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: 'Nunito', 'Segoe UI', sans-serif;
     color: #17160F; background: #fff;
-    font-size: 12.5pt; line-height: 1.65;
-    max-width: 210mm; margin: 0 auto; padding: 22mm 20mm;
+    font-size: 10.3pt; line-height: 1.38;
+    max-width: 210mm; margin: 0 auto; padding: 12mm 13mm;
   }
-  h1, h2, h3 { font-family: 'Fredoka', sans-serif; font-weight: 500; letter-spacing: -0.02em; line-height: 1.15; }
-  h1 { font-size: 26pt; margin-bottom: 14px; }
-  h2 { font-size: 17pt; margin: 30px 0 12px; border-bottom: 3px solid #FFED00; padding-bottom: 5px; }
-  h3 { font-size: 13.5pt; margin: 18px 0 8px; }
-  p { margin-bottom: 10px; text-align: justify; }
-  ul, ol { margin: 0 0 12px 24px; }
-  li { margin-bottom: 6px; }
-  .title-block { text-align: center; padding-bottom: 18px; border-bottom: 4px solid #FFED00; margin-bottom: 20px; }
-  .title-block .badge {
+  h1, h2, h3 { font-family: 'Fredoka', sans-serif; font-weight: 500; letter-spacing: -0.02em; line-height: 1.12; }
+  h1 { font-size: 19pt; margin-bottom: 8px; }
+  h2 { font-size: 12.8pt; margin: 12px 0 6px; border-bottom: 3px solid #FFED00; padding-bottom: 2px; }
+  h3 { font-size: 11pt; margin: 8px 0 4px; }
+  p { margin-bottom: 5px; }
+  ul, ol { margin: 0 0 7px 19px; }
+  li { margin-bottom: 4px; }
+  .title-block { text-align: center; padding-bottom: 8px; border-bottom: 4px solid #FFED00; margin-bottom: 8px; }
+  .badge {
     display: inline-block; background: #17160F; color: #FFED00;
-    font-weight: 800; font-size: 10pt; letter-spacing: .14em; text-transform: uppercase;
-    padding: 6px 16px; border-radius: 999px; margin-bottom: 14px;
+    font-weight: 800; font-size: 8.2pt; letter-spacing: .14em; text-transform: uppercase;
+    padding: 3px 13px; border-radius: 999px; margin-bottom: 7px;
   }
-  .meta { font-size: 11.5pt; line-height: 2; }
-  .meta b { display: inline-block; min-width: 210px; text-align: right; margin-right: 10px; }
+  .meta { font-size: 9.4pt; line-height: 1.55; }
+  .meta b { display: inline-block; min-width: 165px; text-align: right; margin-right: 8px; }
+  .lead-box {
+    background: #FFF4EC; border: 1.5px solid #FF6B35; border-left: 6px solid #FF6B35;
+    border-radius: 10px; padding: 8px 12px; font-size: 11pt; margin: 4px 0 4px;
+  }
+  .lead-box b { color: #C93A1A; }
+  .steps { list-style: none; margin: 6px 0 7px; counter-reset: step; }
+  .steps li {
+    counter-increment: step; position: relative;
+    padding: 5px 9px 5px 39px; background: #FBFAF5;
+    border: 1px solid #ECE9DE; border-radius: 9px; margin-bottom: 4px;
+  }
+  .steps li::before {
+    content: counter(step); position: absolute; left: 9px; top: 6px;
+    width: 22px; height: 22px; border-radius: 50%; background: #E5322D; color: #fff;
+    font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 10.5pt;
+    text-align: center; line-height: 22px;
+  }
+  .callout {
+    background: #FFFCE0; border: 1.5px solid #FFED00; border-radius: 10px;
+    padding: 7px 11px; margin: 6px 0; font-size: 9.6pt;
+  }
+  .callout b { font-family: 'Fredoka', sans-serif; }
+  table { width: 100%; border-collapse: collapse; font-size: 8.7pt; margin: 5px 0 8px; }
+  th, td { border: 1px solid #DCD8CC; padding: 3px 6px; text-align: left; vertical-align: top; }
+  th { background: #F1EFE6; font-family: 'Fredoka', sans-serif; font-weight: 600; }
+  tr:nth-child(even) td { background: #FBFAF5; }
+  .tag { background: #FFED00; color: #17160F; font-weight: 800; font-size: 7.8pt; padding: 1px 6px; border-radius: 6px; white-space: nowrap; }
+  .tag.doc { background: #E5322D; color: #fff; }
+  .mono { font-family: 'Consolas', 'Courier New', monospace; font-size: 8.7pt; }
   .disclaimer {
     background: #FBFAF5; border: 1.5px solid #ECE9DE; border-left: 6px solid #E5322D;
-    border-radius: 12px; padding: 16px 18px; font-size: 10.5pt; margin: 22px 0;
-    text-align: justify;
+    border-radius: 10px; padding: 8px 12px; font-size: 8.3pt; margin: 8px 0; text-align: justify;
   }
-  .disclaimer h4 { font-family: 'Fredoka', sans-serif; font-size: 12pt; margin-bottom: 8px; text-align: center; }
-  .contact { text-align: center; font-size: 10.5pt; font-weight: 700; margin-top: 10px; }
-  .callout {
-    background: #FFFCE0; border: 1.5px solid #FFED00; border-radius: 12px;
-    padding: 12px 16px; margin: 12px 0; font-size: 11.5pt;
+  .disclaimer h4 { font-family: 'Fredoka', sans-serif; font-size: 9.6pt; margin-bottom: 3px; text-align: center; }
+  .contact { text-align: center; font-size: 9pt; font-weight: 700; margin-top: 4px; }
+  .helpline-bar { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 6px 0 3px; }
+  .helpline-bar a {
+    background: #17160F; color: #FFED00; text-decoration: none;
+    font-weight: 800; font-size: 9.6pt; padding: 5px 13px; border-radius: 999px;
   }
-  .tag { background: #FFED00; color: #17160F; font-weight: 800; font-size: 9.5pt; padding: 2px 9px; border-radius: 6px; }
-  table { width: 100%; border-collapse: collapse; font-size: 10.5pt; margin: 10px 0 16px; }
-  th, td { border: 1px solid #DCD8CC; padding: 7px 9px; text-align: left; vertical-align: top; }
-  th { background: #F1EFE6; font-family: 'Fredoka', sans-serif; font-weight: 600; }
-  .arch {
-    background: #17160F; color: #EDECE4; font-family: 'Consolas', monospace; font-size: 9.5pt;
-    border-radius: 12px; padding: 16px 18px; line-height: 1.55; overflow-x: auto; margin: 12px 0;
-  }
-  .arch b { color: #FFED00; }
-  .pagebreak { page-break-before: always; }
-  .footer-note { margin-top: 34px; padding-top: 12px; border-top: 1px solid #ECE9DE; font-size: 9.5pt; color: #6B6860; text-align: center; }
-  .pass { color: #0FA958; font-weight: 800; }
+  .footer-note { margin-top: 7px; padding-top: 6px; border-top: 1px solid #ECE9DE; font-size: 8.2pt; color: #6B6860; text-align: center; }
+  .muted { color: #6B6860; }
+  .small { font-size: 8.6pt; }
 </style>
 </head>
 <body>
 
 <div class="title-block">
-  <div class="badge">System Design &amp; Implementation Report</div>
-  <h1>MyAmbulance Emergency SOS Application: Converting Private Vehicles into Emergency Ambulances with Instant Doctor Alert</h1>
+  <div class="badge">Project Report - Simple English</div>
+  <h1>MyAmbulance: Aapki Car, Ek Emergency Ambulance</h1>
   <div class="meta">
     <div><b>Name:</b> Vrushabh Udepurkar</div>
     <div><b>Semester:</b> V</div>
     <div><b>Patent Contribution:</b> Research and Development Club (GHRCE)</div>
-    <div><b>Mentor:</b> ne********.raisoni.net (R&amp;D club)</div>
+    <div><b>Mentor:</b> ne********.raisoni.net (R&D club)</div>
+    <div><b>Report Date:</b> 23 October 2026</div>
   </div>
 </div>
 
 <div class="disclaimer">
   <h4>***Disclaimer***</h4>
-  This document contains confidential information about the "MyAmbulance Emergency SOS Application," an innovative concept developed by Vrushabh Udepurkar and the Research and Development Club, GHRCE. This idea is currently under patent registration process at the relevant authority. Unauthorized copying, distribution, or use of this idea without prior written consent is strictly prohibited. The creators of this concept reserve the right to pursue legal action in case of misuse or unauthorized replication of this idea. For inquiries or collaboration opportunities, please contact:
+  This document contains confidential information about the "MyAmbulance Emergency SOS Application," an
+  innovative concept developed by Vrushabh Udepurkar and the Research and Development Club, GHRCE. This idea
+  is currently under patent registration process at the relevant authority. Unauthorized copying,
+  distribution, or use of this idea without prior written consent is strictly prohibited. The creators of this
+  concept reserve the right to pursue legal action in case of misuse or unauthorized replication of this idea.
+  For inquiries or collaboration opportunities, please contact:
   <div class="contact">[vrushabh.udepurkar.ai@ghrce.raisoni.net] | [+91 8007470450]</div>
 </div>
 
-<h2>1. AIM</h2>
-<p>
-MyAmbulance Emergency SOS: providing instant, life-saving medical response by turning an ordinary private
-vehicle into a fully equipped emergency ambulance — activated with a single SOS press, coordinated through
-a real-time web platform that alerts the patient's personal doctor with complete medical records and live
-location within seconds.
-</p>
-<p>
-The MyAmbulance concept introduces a new form of rapid emergency medical response built around two pillars:
-(a) a hardware device kit retrofitted into any private car that, on activation, drives a siren, beep horn,
-red and blue emergency lights and live GPS navigation — legally and functionally converting the car into an
-emergency vehicle; and (b) a two-sided web application in which the patient side raises the SOS and the
-doctor side instantly receives a "call-style" alert carrying the patient's name, current emergency type,
-complete health track record and precise location, so that professional medical guidance begins before the
-patient even reaches a hospital.
-</p>
-
-<h2>2. Problem</h2>
-<p>
-In today's world, medical emergencies often cost lives not because treatment does not exist, but because it
-does not reach the patient in time. Existing emergency response systems face well-documented challenges:
-</p>
+<h2>1. The Problem (India)</h2>
 <ul>
-  <li><b>Delay in Response:</b> Government and private ambulance services frequently take tens of minutes to arrive, especially outside metro cities. In cardiac arrest, stroke and severe-accident cases, every minute of delay sharply reduces survival probability.</li>
-  <li><b>No Rapid Last-Mile Vehicle:</b> Ambulances are scarce relative to demand, and a privately owned car parked at home — although faster to deploy — has no siren, no lights, no legal standing and no way to alert anyone, so it remains unused in the exact moment it could save a life.</li>
-  <li><b>Doctors Are Out of the Loop:</b> When a family emergency occurs, the patient's own doctor — who already knows the patient's history — is typically informed late or not at all. The treating hospital starts from zero: no history, no allergies, no prior prescriptions.</li>
-  <li><b>Repeated Data Entry During Panic:</b> Existing apps demand logins, OTPs and multi-screen navigation at the worst possible moment. Panic plus complex UI equals delay.</li>
-  <li><b>Fragmented Family Records:</b> Health records of family members are scattered across papers, messages and memory. Retrieving them during an emergency wastes critical minutes.</li>
+  <li><b>108 ambulance bahut door hoti hai.</b> Aane me 20-30 minute lag jaate hain, aur tab tak halat bigad
+      sakti hai.</li>
+  <li><b>Traffic aur chhoti galiyan.</b> Bade sheher ho ya gaon, ambulance phas jaati hai - emergency me har
+      minute keemti hai.</li>
+  <li><b>Ghar walon ko kuch pata hi nahi hota.</b> Patient ki condition kya hai, kaunsi dawaiyan chalti hain,
+      kis cheez se allergy hai - kuch bhi yaad nahi rehta.</li>
+  <li><b>Patient ka apna doctor late pata chalta hai.</b> Jo doctor saalon se ilaaj kar raha hai, use emergency
+      ki khabar hi sabse baad me milti hai.</li>
+  <li><b>Hospital pahunchne tak family panic me hoti hai</b> aur zaroori jaankari (blood group, purani bimari)
+      nahi hoti, jisse ilaaj shuru karne me der hoti hai.</li>
+  <li><b>Chhote sheher aur gaon me private ambulance mehngi aur late hai,</b> aur ghar ki car khaali khadi
+      rehti hai.</li>
 </ul>
-<p>
-Therefore, a system that converts readily available private vehicles into response units and simultaneously
-hands the treating doctor a complete patient file at the press of a button is crucial.
-</p>
 
-<h2>3. Objective</h2>
-<p>The objective of this idea is to build a smart, fast MyAmbulance Emergency SOS Application that:</p>
-<ol>
-  <li><b>Converts Any Private Car into an Ambulance:</b> A retrofitted two-part hardware kit (siren + red/blue light unit, beep horn + navigation unit) is activated by the platform's SOS, immediately giving the car emergency audio-visual presence and route guidance.</li>
-  <li><b>Alerts the Personal Doctor Instantly:</b> On SOS, the doctor's web console receives a live, call-style incoming-emergency alert containing patient name, emergency type, health track record and GPS location — within seconds.</li>
-  <li><b>Removes All Login Friction:</b> One-time registration using only a mobile number (no OTP, no password), after which the user is identified automatically from the registered network's IP address, so an emergency never begins with a login screen.</li>
-  <li><b>Maintains a Family Health Dossier:</b> Multiple family members can be registered with diseases, allergies, blood group, personal doctor details and a longitudinal health tracker that is automatically attached to any SOS.</li>
-  <li><b>Registers and Tracks Emergency Vehicles:</b> Car registration number, owner details and both hardware device IDs are recorded, with per-device live status and vehicle position tracking during an emergency.</li>
-  <li><b>Minimises Emergency-Time Interaction:</b> The patient interface is designed so the complete SOS action fits on the first screen of a phone — one tap on a single large button, no dropdowns, no confirmations, no countdowns.</li>
-  <li><b>Centres Everything on a Radial One-Press Hub (implemented):</b> The patient screen is a Tangerine-inspired circular emergency hub — a giant central SOS circle ringed by six circular one-tap actions (Patients, Vehicles, Doctor, 108, 112, WhatsApp share) with patient and vehicle chips above — so every emergency path is one thumb-press from the first screen.</li>
-  <li><b>Provides Escalation Paths:</b> Built-in one-tap dialling of national helplines (108, 112, 1091) and WhatsApp location sharing ensure that if internet or the platform fails, human help is still one tap away.</li>
-  <li><b>Enables Doctor-Side Coordination with Implemented Approve / Refer / Cancel Escalation:</b> Every incoming emergency offers three one-tap actions — the doctor approves and takes the case, cancels a false alarm, or — when unavailable — refers the live SOS to another registered doctor with a note. The referral arrives on the referred doctor's console with a "REFERRED TO YOU" banner and ringtone, following a full active → referred → acknowledged → resolved (or cancelled) lifecycle.</li>
-</ol>
-
-<h2>4. Solution</h2>
-<p>The MyAmbulance Emergency SOS Application offers the following solutions to the above-stated problems:</p>
-<ol>
-  <li><b>Single-Press SOS → Emergency Vehicle Conversion:
-    <ul>
-      <li>The patient-side dashboard presents the radial emergency hub — a giant central SOS circle ringed by six circular one-tap actions (Patients, Vehicles, Doctor, 108, 112, WhatsApp share). Pressing SOS immediately captures the device's GPS location, selects the assigned emergency vehicle and posts a structured emergency record to the server.</li>
-      <li>The assigned car's two hardware devices switch to active state — siren on, beep on, red and blue lights flashing, navigation routing to the patient's coordinates — converting the private car into a responding emergency ambulance.</li>
-      <li>A short siren tone and vibration feedback confirm activation locally on the phone, giving the family certainty that help has been triggered.</li>
-    </ul>
-  </li>
-  <li><b>Doctor-Side Real-Time Emergency Console:
-    <ul>
-      <li>The doctor's console polls the platform continuously and raises a red "Incoming Emergency" banner with a ringtone the moment an SOS is raised — functioning like an in-app emergency call.</li>
-      <li>The alert carries the complete patient snapshot: name, age, gender, blood group, diseases, allergies, personal doctor, last health-tracker entries, emergency contacts and live location with a Google Maps link.</li>
-      <li>Three one-tap actions — <span class="tag">Approve</span>, <span class="tag">Refer</span>, <span class="tag">Cancel</span> — are implemented on every incoming emergency: Approve takes the case and moves it to acknowledged, Cancel dismisses a false alarm, and Refer hands the live SOS to another registered doctor. When an unavailable doctor refers with a note, the referral arrives on the referred doctor's console with a "REFERRED TO YOU by Dr X" banner and ringtone, while every other console simply shows "referred → Dr Y" without ringing.</li>
-      <li>Every patient and emergency-contact number on the console is a direct <i>tel:</i> dial link, so calling back requires zero typing.</li>
-    </ul>
-  </li>
-  <li><b>Patient &amp; Family Health Dossier:
-    <ul>
-      <li>Family members are added as patients with medical conditions, allergies, blood group and up to four emergency contacts.</li>
-      <li>A rolling health tracker (BP, sugar, heart rate, weight, free-text episodes) is stored per patient and the ten most recent entries are embedded into every SOS record — the doctor sees history without asking for it.</li>
-      <li>Each patient carries a default emergency type that auto-pre-selects on SOS, eliminating typing under panic.</li>
-    </ul>
-  </li>
-  <li><b>Emergency Vehicle Registry:
-    <ul>
-      <li>Car registration number, owner name, model and colour are recorded together with exactly two hardware device IDs (uniqueness enforced platform-wide).</li>
-      <li>Track view shows live device state, vehicle status (idle / emergency / offline), last known coordinates with timestamp, and lets a patient be assigned to the car for faster SOS routing.</li>
-    </ul>
-  </li>
-  <li><b>Panic-Free Access Model:
-    <ul>
-      <li>Registration requires only a name and mobile number — deliberately no OTP and no password for speed, with the mobile acting as the credential.</li>
-      <li>The server records the registering network's IP addresses (last six). On subsequent visits from a known network the client silently authenticates via an IP-validated auto-login endpoint; only from an unknown network does the minimal login screen appear.</li>
-      <li>Sessions are stateless JSON Web Tokens with a six-month expiry, so a household device essentially stays signed-in for half a year.</li>
-    </ul>
-  </li>
-  <li><b>Radial Emergency Hub &amp; Always-Available Fallbacks:
-    <ul>
-      <li>The patient dashboard is modelled on Tangerine for Mac's circular UI: a giant SOS circle in the centre with six circular buttons arranged in a ring around it — Patients, Vehicles, Doctor, 108, 112 and WhatsApp share — every one of them reachable with a single thumb press from the first screen.</li>
-      <li>Patient and vehicle chips sit above the ring so the exact patient and car are chosen with one tap before SOS; the live SOS overlay then shows device/vehicle simulation status plus direct <i>tel:</i> call buttons.</li>
-      <li>One-tap <i>tel:</i> links to 108 (ambulance), 112 (national emergency) and 1091 (women helpline) remain on both the app footer and the live SOS panel, and the WhatsApp ring button pre-fills the emergency type, patient name and live location link for rapid broadcast to family groups.</li>
-    </ul>
-  </li>
-  <li><b>SOS History &amp; Case Lifecycle:
-    <ul>
-      <li>Every emergency is stored with a five-state lifecycle — active → referred → acknowledged → resolved (or cancelled) — with statistics (total / active / resolved) and doctor notes (including referral notes) retained for review.</li>
-    </ul>
-  </li>
-</ol>
-
-<div class="pagebreak"></div>
-<h2>5. System Architecture</h2>
-<p>The platform follows a three-tier web architecture with a simulated device-adapter layer:</p>
-<div class="arch">
-+---------------------------+        HTTPS / REST (JSON)       +-----------------------------+
-|  PATIENT WEB CLIENT       | &lt;------------------------------&gt; |  API SERVER (Node.js)       |
-|  React 18 + Vite SPA      |   /api/auth  /api/patients       |  Express.js (ESM)           |
-|  - SOS dashboard          |   /api/vehicles /api/emergencies |  - JWT auth (180-day)       |
-|  - My Patients            |                                  |  - IP auto-login            |
-|  - Emergency Vehicles     |                                  |  - Validation &amp; snapshots   |
-|  - Design: Sampark UI     |                                  |  - Device state machine     |
-+---------------------------+                                  +--------------+--------------+
-+---------------------------+                                             |
-|  DOCTOR WEB CONSOLE       | &lt;--- polling (5 s) ---+                      | mongoose
-|  - Incoming alert + tone  |                      |                      v
-|  - Patient full record    |                      |           +-----------------------------+
-|  - Approve / Refer / Cancel|                     |           |  MongoDB Atlas (cloud DB)   |
-|  - tel: call links        |                      |           |  users / patients /         |
-+---------------------------+                      |           |  vehicles / emergencies     |
-                                                     +--  OR ---+-----------------------------+
-                                                   in-memory MongoDB (offline fallback)
-        +---------------------------+
-        |  HARDWARE DEVICE KIT      |  (simulated in v1)
-        |  Dev-1: siren + R/B lights|
-        |  Dev-2: beep + navigation |
-        +---------------------------+
+<h2>2. Our Solution</h2>
+<div class="lead-box">
+  <b>Aapki apni car ek emergency ambulance ban jaati hai - sirf ek button se.</b>
 </div>
-<p>
-The client and server communicate exclusively through a versioned REST API (<span class="tag">/api/*</span>)
-proxied in development and directly hosted in production. Emergency records embed a denormalised
-<i>patientSnapshot</i> so that doctor-side rendering never depends on further database lookups — a deliberate
-choice for latency under emergency conditions. Doctor-to-doctor referrals ride the same live emergency record:
-a Refer action updates its status and assigned doctor, so the SOS routes directly between doctor consoles — the
-referred doctor's console picks it up with a ringtone, while others simply show "referred → Dr Y".
-</p>
-
-<h2>6. Modules &amp; Workflow</h2>
-<h3>6.1 Authentication &amp; Identity Module</h3>
+<p>Emergency me bas <b>SOS dabao</b> - aur turant ye sab shuru ho jaata hai:</p>
 <ul>
-  <li>Mobile-only registration (role: patient / doctor), 10-digit Indian mobile validation, duplicate detection (HTTP 409), client IP capture into a rolling six-address list.</li>
-  <li>JWT issuance (HS256, 180-day expiry) on register, login and IP-matched auto-login; auto-login returns explicit <i>ip_mismatch</i> (401) or unknown-mobile (404) so the client can choose login vs registration.</li>
-  <li>Every authenticated request opportunistically refreshes the caller's known-IP list, making the auto-login resilient to normal ISP address rotation.</li>
+  <li><b>Siren + red/blue lights + beep</b> aapki car par ON ho jaate hain, taaki raasta mile.</li>
+  <li><b>Navigation</b> chalu ho jaata hai.</li>
+  <li><b>Aapke family doctor ko turant alert</b> jaata hai - patient ki poori medical history ke saath.</li>
+  <li><b>Ghar ke ek family member ko call</b> chali jaati hai, taaki sabko pata chale.</li>
+  <li><b>Zaroorat ho to 108 / 112 / WhatsApp</b> - sirf ek tap par.</li>
 </ul>
+<p>Doctor aapki request <b>Approve</b> kar sakta hai, ya kisi <b>doosre doctor ko Refer</b> kar sakta hai.</p>
 
-<h3>6.2 Patient Module</h3>
-<ul>
-  <li>CRUD over family patients; medical fields (diseases, allergies, blood group, age, gender), personal-doctor block (name, degree, specialization, mobile), up to four validated emergency contacts.</li>
-  <li>Health tracker append endpoint (last 100 entries retained); ten most recent entries copied into SOS snapshots.</li>
-</ul>
-
-<h3>6.3 Emergency Vehicle &amp; Device Module</h3>
-<ul>
-  <li>Vehicle registration requiring exactly two unique device IDs; status state machine (idle → emergency → idle) driven by SOS create/resolve.</li>
-  <li>Device-level active flags set on SOS and cleared on resolution; location update endpoint for periodic telemetry.</li>
-</ul>
-
-<h3>6.4 SOS Emergency Module</h3>
-<ol>
-  <li>Patient selects themselves or a family member chip, optionally selects a registered car, presses SOS.</li>
-  <li>Client captures geolocation → <span class="tag">POST /api/emergencies/sos</span>.</li>
-  <li>Server freezes a patient snapshot (demographics, conditions, contacts, tracker), stamps location, activates vehicle devices, marks status <i>active</i>.</li>
-  <li>Doctor console poll detects the active record → ringtone + banner → doctor acts with three implemented one-tap buttons: Approve (take the case → acknowledged), Cancel (dismiss a false alarm) or Refer (hand the live SOS to another registered doctor with a note → referred; the referred doctor's console rings with a "REFERRED TO YOU" banner while other consoles show "referred → Dr Y").</li>
-  <li>Resolution — possible only from an open (active / referred / acknowledged) state, enforced by an atomic status guard — flips the vehicle back to idle, deactivates both devices and stores the doctor's note; closed emergencies reject further actions.</li>
+<h2>3. How It Works (aam aadmi ke liye)</h2>
+<ol class="steps">
+  <li><b>Register karo.</b> Sirf apna naam aur 10-digit mobile number daalo. Koi OTP nahi, koi password nahi -
+      <b>mobile number hi aapka login hai.</b></li>
+  <li><b>Family members add karo</b> (naam, umar, blood group, bimari, allergy, emergency contacts) aur apna
+      <b>family doctor chuno.</b></li>
+  <li><b>Car register karo.</b> Car ka number aur uska emergency device kit daalo.</li>
+  <li><b>Emergency me SOS dabao.</b> Aapki live location aur patient ki health details turant bhej di jaati hain.</li>
+  <li><b>Doctor respond karta hai</b> aur aapki car ka <b>device kit chalu ho jaata hai</b> - siren, lights,
+      beep aur navigation.</li>
 </ol>
 
-<h3>6.5 Interface Design Principle</h3>
-<p>
-The visual system is modelled on the clean, high-legibility Sampark design language — Fredoka display type,
-Nunito body type, warm yellow accents (#FFED00) on paper-white surfaces, pill-shaped controls and 18–24 px
-rounded cards — with emergency red (#E5322D) reserved exclusively for live-SOS state. The patient screen itself
-is a Tangerine-inspired radial emergency hub: a giant pulsing SOS circle at the centre of a ring of six circular
-one-tap actions (Patients, Vehicles, Doctor, 108, 112, WhatsApp share), with patient and vehicle chips above the
-ring so every selection is a single tap rather than a dropdown. The SOS circle sits within the first viewport on
-a 390 px phone and there is no countdown or confirmation step between intention and activation; the emergency
-overlay adds direct <i>tel:</i> call buttons and a device-simulation panel. The doctor console removes the SOS
-button entirely — its only job is receiving and acting on incoming emergencies through Approve / Refer / Cancel.
+<h2>4. Why It Helps</h2>
+<ul>
+  <li><b>Time bachta hai</b> - ghar ki car turant nikal jaati hai, 108 ka intezaar nahi karna padta.</li>
+  <li><b>Sahi doctor ko sahi jaankari</b> milti hai, isliye ilaaj bina der shuru ho jaata hai.</li>
+  <li><b>Family ko turant pata chalta hai</b> aur woh panic me akeli nahi rehti.</li>
+  <li><b>Ghar ki car ka sahi use</b> hota hai - jo pehle khaali khadi rehti thi.</li>
+  <li><b>Sasta aur turant</b> - koi mehngi private ambulance book karne ki zaroorat nahi.</li>
+</ul>
+
+<h2>5. Who Should Use It</h2>
+<ul>
+  <li>Bade-buzurg maa-baap (elderly parents)</li>
+  <li>Pregnant mahilayein (garbhvati mahilayein)</li>
+  <li>Chhote bachche wale parivaar</li>
+  <li>Heart ke mareez</li>
+  <li>Chhote sheher aur gaon ke log, jahan ambulance late aati hai</li>
+  <li>Har woh parivaar jinke paas apni car hai</li>
+</ul>
+
+<h2>6. Features Ready Today</h2>
+<ul>
+  <li><b>SOS Dashboard</b> - ek bada SOS button aur turant kaam karne wale chhote buttons.</li>
+  <li><b>Family patients + health records</b> - umar, blood group, bimari, allergy, BP, sugar, weight.</li>
+  <li><b>Family doctor</b> - apna doctor chuno, sabse pehle usi ko alert jaata hai.</li>
+  <li><b>Emergency contacts</b> - parivaar ke logon ko apne aap call.</li>
+  <li><b>Car device kit</b> - siren, red/blue lights, beep aur navigation.</li>
+  <li><b>Doctor console</b> - doctor ek tap me Approve / Refer / Resolve kar sakta hai.</li>
+  <li><b>Helplines</b> - 108, 112 aur 1091 hamesha ek tap par.</li>
+</ul>
+<p class="small muted">
+  Under the hood: aapka data safe tareeke se online rehta hai aur app kisi bhi phone ke browser me chal jaati
+  hai - kuch install karne ki zaroorat nahi.
 </p>
 
-<h2>7. Technologies Used</h2>
+<h2>7. Test Accounts (login = sirf mobile number)</h2>
+<div class="callout">
+  <b>Login ke liye sirf neeche diya mobile number type karo.</b> Koi OTP nahi, koi password nahi. Doctor ke
+  number se Doctor Console khulta hai, aur patient ke number se SOS Dashboard. Saare accounts active hain.
+</div>
 <table>
-  <tr><th>Layer</th><th>Technology</th><th>Purpose</th></tr>
-  <tr><td>Frontend</td><td>React 18, Vite, React Router 6</td><td>Single-page patient &amp; doctor interfaces, fast hot-reload development</td></tr>
-  <tr><td>Styling</td><td>Hand-crafted CSS design system (Google Fonts: Fredoka + Nunito)</td><td>Sampark-style light theme, mobile-first emergency layout, animations (SOS pulse, light flash, ring shake)</td></tr>
-  <tr><td>Backend</td><td>Node.js 22, Express.js (ESM)</td><td>REST API, business rules, snapshot assembly</td></tr>
-  <tr><td>Database</td><td>MongoDB Atlas (cloud) via Mongoose ODM; in-memory MongoDB fallback</td><td>Documents for users, patients, vehicles, emergencies; offline-resilient local development</td></tr>
-  <tr><td>Authentication</td><td>JSON Web Tokens (6-month expiry) + server-side IP trust list</td><td>Password-less, OTP-less, auto-login from registered networks</td></tr>
-  <tr><td>Browser APIs</td><td>Geolocation API, Web Audio API, Navigator Vibration, tel:/WhatsApp deep links</td><td>Live location capture, siren/ringtone synthesis, haptic feedback, direct calling</td></tr>
-  <tr><td>Real-time strategy</td><td>Short-interval polling (5 s) on doctor console</td><td>New-OS detection without websocket infrastructure</td></tr>
-  <tr><td>Testing</td><td>HTTP end-to-end smoke suites</td><td>Registration, auto-login, patient, vehicle, SOS, doctor lifecycle, persistence</td></tr>
+  <tr><th>Type</th><th>Name</th><th>Mobile (login)</th></tr>
+  <tr><td><span class="tag doc">Doctor</span></td><td>Dr. Aarav Sharma</td><td class="mono">9822000001</td></tr>
+  <tr><td><span class="tag doc">Doctor</span></td><td>Dr. Priya Deshmukh</td><td class="mono">9822000002</td></tr>
+  <tr><td><span class="tag doc">Doctor</span></td><td>Dr. Rohan Singh</td><td class="mono">9822000003</td></tr>
+  <tr><td><span class="tag doc">Doctor</span></td><td>Dr. Ananya Verma</td><td class="mono">9822000004</td></tr>
+  <tr><td><span class="tag doc">Doctor</span></td><td>Dr. Kabir Nair</td><td class="mono">9822000005</td></tr>
+  <tr><td><span class="tag">Patient</span></td><td>Rahul Sharma</td><td class="mono">9822000101</td></tr>
+  <tr><td><span class="tag">Patient</span></td><td>Priya Kulkarni</td><td class="mono">9822000102</td></tr>
+  <tr><td><span class="tag">Patient</span></td><td>Amit Patil</td><td class="mono">9822000103</td></tr>
+  <tr><td><span class="tag">Patient</span></td><td>Sneha Kulkarni</td><td class="mono">9822000104</td></tr>
+  <tr><td><span class="tag">Patient</span></td><td>Vikram Rao</td><td class="mono">9822000105</td></tr>
+  <tr><td><span class="tag">Patient</span></td><td>Ananya Joshi</td><td class="mono">9822000106</td></tr>
+  <tr><td><span class="tag">Patient</span></td><td>Karan Mehta</td><td class="mono">9822000107</td></tr>
+  <tr><td><span class="tag">Patient</span></td><td>Divya Iyer</td><td class="mono">9822000108</td></tr>
+  <tr><td><span class="tag">Patient</span></td><td>Rohan Gupta</td><td class="mono">9822000109</td></tr>
+  <tr><td><span class="tag">Patient</span></td><td>Meera Kaur</td><td class="mono">9822000110</td></tr>
 </table>
 
-<h2>8. Security &amp; Privacy Considerations</h2>
+<h2>8. Safety &amp; Privacy (simple)</h2>
 <ul>
-  <li><b>Minimal credential surface:</b> no passwords stored, therefore no password database to leak; the mobile number plus network-IP trust forms the identity.</li>
-  <li><b>Bounded IP trust:</b> auto-login only succeeds against the last six IPs observed for that account; an unknown network always falls back to explicit login.</li>
-  <li><b>Ownership enforcement:</b> every patient/vehicle/emergency query is scoped to the authenticated owner; doctors receive emergency records but never write patient data.</li>
-  <li><b>Input validation:</b> server-side 10-digit mobile patterns, device-ID uniqueness, two-device constraint, contact-cap limits and status enums.</li>
-  <li><b>Secrets handling:</b> JWT secret and database URI kept in a git-ignored environment file; credentials URL-encoded inside the connection string.</li>
-  <li><b>Snapshot immutability:</b> SOS records freeze the patient state at trigger time, so later edits never rewrite emergency history.</li>
+  <li><b>Mobile number hi login hai</b> - koi password store nahi hota, isliye password chori hone ka dar nahi.</li>
+  <li><b>Aapka data sirf aapko dikhta hai</b> - aapke parivaar ke records koi doosra nahi dekh sakta.</li>
+  <li><b>Doctor ko sirf apne patients ke alerts</b> milte hain - kisi aur ka data nahi.</li>
 </ul>
 
-<h2>9. Testing &amp; Validation</h2>
-<p>The implementation was validated through layered automated HTTP test passes against a live running instance:</p>
-<table>
-  <tr><th>Test Suite</th><th>Coverage</th><th>Result</th></tr>
-  <tr><td>Core API smoke (11 checks)</td><td>Health, register, login, duplicate-409, patient CRUD, vehicle register with dual devices, SOS creation, doctor active feed with snapshot + location, acknowledge, resolve → device reset</td><td class="pass">11/11 PASS</td></tr>
-  <tr><td>Auth &amp; identity suite (12 checks)</td><td>180-day JWT proof (exp−iat = 15,552,000 s), IP auto-login success, IP-mismatch rejection, emergency-contact validation &amp; caps, stats endpoint, vehicles lifecycle</td><td class="pass">12/12 PASS</td></tr>
-  <tr><td>End-to-end verification (13 checks)</td><td>Full journey: patient + doctor registration → family patient with contacts → car → SOS → doctor sees snapshot/contacts/location → stats → resolve → vehicles idle → negative auto-login</td><td class="pass">13/13 PASS</td></tr>
-  <tr><td>Frontend build gate</td><td>Production bundle compilation of all nine source modules</td><td class="pass">BUILD OK (exit 0)</td></tr>
-  <tr><td>Referral escalation suite (11 checks)</td><td>Doctor-only referral flow: unavailable doctor forwards the live SOS with a note → referred doctor's console receives it with "REFERRED TO YOU by Dr X" banner and ringtone; other doctors see "referred → Dr Y" without ringing; 403 for patient roles on doctor-only endpoints; closed emergencies reject further actions (guards)</td><td class="pass">11/11 PASS</td></tr>
-  <tr><td>10-round regression campaign (181 checks)</td><td>Ten distinct regression rounds covering auth, patients, vehicles, SOS, referral and lifecycle paths. Four real bugs found and fixed: vehicle registration-number duplicate guard; malformed ObjectId crash → 404 guards + unhandledRejection net; concurrent-resolve race → atomic findOneAndUpdate guard; doctor-console stale-closure poll refresh bug. Zero outstanding issues.</td><td class="pass">181/181 PASS</td></tr>
-  <tr><td>Seeded Atlas dataset verification</td><td>Permanent MongoDB Atlas persistence proven across server restarts (SRV connection with in-process DNS-server fix); seed data verified: 5 doctors (9822000001-05: Cardiology, Neurology, Orthopedics, Pediatrics, Trauma), 10 patient users (9822000101-110) each with a family patient (diseases, allergies, blood group, personal doctor, emergency contacts, 3 health-tracker entries) and a registered car (MH31AB1101-1110 with device pairs TSTAxx/TSTBxx), 6 resolved demo emergencies + 1 open demo referral</td><td class="pass">PASS</td></tr>
-</table>
-
-<h2>10. Limitations</h2>
-<ul>
-  <li>Hardware activation is currently <b>simulated</b> inside the web client (visual/auditory device panel); physical siren/light control awaits the device firmware interface.</li>
-  <li>Doctor "call" is an in-console alert with dial-out links; automated outbound voice/SMS (e.g. telephony provider integration) is not yet wired.</li>
-  <li>IP auto-login depends on network stability — carrier-grade NAT or frequent address rotation forces an occasional manual login (six stored IPs soften this).</li>
-  <li>Location accuracy is browser/OS dependent; a GPS-off device degrades to a "location unavailable" SOS.</li>
-  <li>Cloud database credential rotation is an operational dependency for persistent multi-instance deployment.</li>
-</ul>
-
-<h2>11. Future Scope</h2>
-<ul>
-  <li>Firmware bridge (BLE/Wi-Fi module) so SOS drives the physical siren, strobe lights and navigation unit for real.</li>
-  <li><b>Multi-hop referrals &amp; specialist panels</b> — building on the implemented single-hop Refer hand-off: chains of specialists, panel triage and automatic suggestion of an available on-call doctor.</li>
-  <li>Telephony integration for automated voice call / SMS blast to emergency contacts and the assigned driver.</li>
-  <li>Live en-route map with continuous vehicle telemetry and ETA to hospital.</li>
-  <li>Driver / gig-worker dispatch layer so any nearby registered private vehicle can be summoned, not only the family's own car.</li>
-  <li>Hospital pre-alert packets, multi-language UI and offline-capable progressive web app packaging.</li>
-</ul>
-
-<h2>12. Conclusion</h2>
-<p>
-The MyAmbulance Emergency SOS Application is a purpose-built, emergency-first system that solves a concrete
-gap: the private car standing in the driveway has the space and the mobility to save a life, but lacks the
-siren, the lights, the navigation priority and — most importantly — an instant line to someone who can treat
-the patient. MyAmbulance supplies exactly those missing links: a retrofitted two-part device kit that turns
-any car into an emergency ambulance at the press of a button, and a real-time platform that simultaneously
-hands the personal doctor the patient's name, emergency type, health track record and live location like an
-incoming call. By eliminating OTPs, passwords and multi-step navigation from the critical path, and by
-designing the interface around a single one-tap target, the system keeps human interaction time close to
-zero at the exact moment seconds decide outcomes. The shipped system centres that philosophy on a
-Tangerine-inspired radial emergency hub — a giant one-press SOS circle ringed by six circular actions — and on
-a doctor referral chain in which an unavailable doctor hands the live SOS to a colleague's console in a single
-tap, along the validated active → referred → acknowledged → resolved lifecycle. The platform runs on a
-permanent MongoDB Atlas deployment and was closed out with a ten-round regression campaign of 181 automated
-checks — including the referral escalation suite and seeded-dataset verification — in which four real defects
-were found, fixed and re-verified with zero outstanding issues. Implemented and validated on a modern
-MERN-stack architecture, MyAmbulance lays the groundwork for a
-scalable, affordable and genuinely rapid emergency response layer for Indian households — one that can grow
-from a family safety tool into a nationwide network of ordinary vehicles doing extraordinary good.
-</p>
+<h2>9. Emergency Helplines</h2>
+<div class="helpline-bar">
+  <a href="tel:108">108 - Ambulance</a>
+  <a href="tel:112">112 - National Emergency</a>
+  <a href="tel:1091">1091 - Women Helpline</a>
+</div>
 
 <div class="disclaimer">
   <h4>***Disclaimer (Re-stated)***</h4>
@@ -337,8 +222,9 @@ from a family safety tool into a nationwide network of ordinary vehicles doing e
 </div>
 
 <div class="footer-note">
-  MyAmbulance Emergency SOS Application — System Design &amp; Implementation Report · Vrushabh Udepurkar ·
-  Semester V · R&amp;D Club, GHRCE
+  MyAmbulance Emergency SOS Application - Project Report (Simple English) - Vrushabh Udepurkar -
+  Semester V - R&amp;D Club, GHRCE - 23 October 2026<br>
+  Contact: vrushabh.udepurkar.ai@ghrce.raisoni.net | +91 8007470450
 </div>
 
 </body>

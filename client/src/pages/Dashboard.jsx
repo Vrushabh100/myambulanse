@@ -1,6 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../api.js";
+import { doctorLabel } from "../format.js";
+import {
+  IconUsers,
+  IconCar,
+  IconStethoscope,
+  IconPhone,
+  IconAmbulance,
+  IconSiren,
+  IconWhatsApp
+} from "../components/Icon.jsx";
+import AmbulanceLoader from "../components/AmbulanceLoader.jsx";
 
 const EMERGENCIES = [
   "Heart attack / Chest pain",
@@ -15,12 +26,12 @@ const EMERGENCIES = [
 ];
 
 const RING = [
-  { icon: "👨👩👧", label: "Patients", to: "/patients" },
-  { icon: "🚗", label: "Vehicles", to: "/vehicles", badge: "vehicles" },
-  { icon: "🩺", label: "Doctor", to: "/doctor" },
-  { icon: "📞", label: "108", href: "tel:108" },
-  { icon: "🚔", label: "112", href: "tel:112" },
-  { icon: "💬", label: "WhatsApp", wa: true }
+  { icon: IconUsers, label: "Patients", to: "/patients" },
+  { icon: IconCar, label: "Vehicles", to: "/vehicles", badge: "vehicles" },
+  { icon: IconStethoscope, label: "Doctor", to: "/doctor" },
+  { icon: IconAmbulance, label: "108", href: "tel:108" },
+  { icon: IconSiren, label: "112", href: "tel:112" },
+  { icon: IconWhatsApp, label: "WhatsApp", wa: true }
 ];
 
 function DevicePanel({ state }) {
@@ -116,6 +127,57 @@ export default function Dashboard({ user }) {
   const [emergencies, setEmergencies] = useState([]);
   const [stats, setStats] = useState({ total: 0, active: 0, resolved: 0 });
   const [lastLoc, setLastLoc] = useState(null);
+  const [docPickerOpen, setDocPickerOpen] = useState(false);
+  const [docSearch, setDocSearch] = useState("");
+  const [docList, setDocList] = useState(null);
+  const [docBusy, setDocBusy] = useState(false);
+  const [docErr, setDocErr] = useState("");
+
+  const docQuery = docSearch.trim().toLowerCase();
+  const docFiltered = (docList || []).filter((d) => {
+    if (!docQuery) return true;
+    return [d.name, d.specialization, d.mobile]
+      .filter(Boolean)
+      .some((v) => String(v).toLowerCase().includes(docQuery));
+  });
+
+  function toggleDocPicker() {
+    const next = !docPickerOpen;
+    setDocPickerOpen(next);
+    setDocErr("");
+    if (next && docList === null) {
+      api("/doctors")
+        .then((list) => setDocList(Array.isArray(list) ? list : []))
+        .catch(() => {
+          setDocList([]);
+          setDocErr("Could not load doctors. Check your connection and try again.");
+        });
+    }
+  }
+
+  async function selectDoctor(doc) {
+    if (docBusy) return;
+    setDocErr("");
+    if (!patientId) {
+      setDocErr("Family doctor is saved per family member — pick a person in “Who” first, or add a member in My Patients.");
+      return;
+    }
+    setDocBusy(true);
+    try {
+      const personalDoctor = doc
+        ? { name: doc.name, degree: doc.degree || "", specialization: doc.specialization || "", mobile: doc.mobile || "", doctorId: doc.id }
+        : { name: "", degree: "", specialization: "", mobile: "", doctorId: null };
+      const updated = await api(`/patients/${patientId}`, { method: "PUT", body: { personalDoctor } });
+      setPatients((list) => list.map((p) => (p._id === updated._id ? updated : p)));
+      setDocPickerOpen(false);
+      setDocSearch("");
+    } catch (e) {
+      setDocErr(e.message);
+    } finally {
+      setDocBusy(false);
+    }
+  }
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -209,11 +271,10 @@ export default function Dashboard({ user }) {
   const mapsUrl = hasLocation
     ? `https://www.google.com/maps?q=${active.location.lat},${active.location.lng}`
     : null;
-  const waText = `EMERGENCY! ${activeName} — ${active?.emergencyType || ""}. Location: ${
-    mapsUrl || "location unavailable"
-  }`;
 
   const overlayOpen = !!active && !panelHidden;
+  const selectedPatient = patients.find((p) => p._id === patientId);
+  const familyDoc = selectedPatient?.personalDoctor;
 
   function historyBadge(status) {
     if (status === "active") return "badge danger";
@@ -221,6 +282,107 @@ export default function Dashboard({ user }) {
     if (status === "resolved") return "badge ok";
     return "badge";
   }
+
+  const activeId = active?._id || null;
+  const activeStatus = active?.status || null;
+  const emgDoctorName = doctorLabel(active?.patientSnapshot?.personalDoctor?.name, { withDot: true });
+  const emgDoctorMobile = (active?.patientSnapshot?.personalDoctor?.mobile || "").trim();
+  const emgFamilyContact = active?.patientSnapshot?.emergencyContacts?.[0] || null;
+  const emgLoaderTitle = emgDoctorName ? `Calling ${emgDoctorName}` : "Connecting to doctor";
+
+  const activeRef = useRef(null);
+  activeRef.current = active;
+  const [emgStage, setEmgStage] = useState("loader");
+  const emgStageRef = useRef("loader");
+  const emgTimerRef = useRef(null);
+  const emgTimerOnRef = useRef(false);
+  const emgSeenIdRef = useRef(null);
+
+  function applyEmgStage(next) {
+    emgStageRef.current = next;
+    setEmgStage(next);
+  }
+
+  function clearEmgPhaseTimer() {
+    if (emgTimerRef.current) clearTimeout(emgTimerRef.current);
+    emgTimerRef.current = null;
+    emgTimerOnRef.current = false;
+  }
+
+  // Reset the phase machine whenever the overlay closes or unmounts.
+  useEffect(() => {
+    return () => {
+      clearEmgPhaseTimer();
+      emgSeenIdRef.current = null;
+      applyEmgStage("loader");
+    };
+  }, [overlayOpen]);
+
+  // Phase machine:
+  //   status "active"                       -> "Calling <doctor>" animation, DevicePanel hidden
+  //   status "acknowledged" | "referred"    -> same animation titled "Getting car device ready",
+  //                                            then EXACTLY 5s later swap to <DevicePanel/>
+  //   opens already acknowledged/referred   -> DevicePanel immediately (5s skipped)
+  //   back to "active"                      -> phase 1 again
+  useEffect(() => {
+    if (!overlayOpen || !active) return;
+    const id = String(active._id);
+    const ready = active.status === "acknowledged" || active.status === "referred";
+    if (emgSeenIdRef.current !== id) {
+      clearEmgPhaseTimer();
+      emgSeenIdRef.current = id;
+      applyEmgStage(ready ? "device" : "loader");
+      return;
+    }
+    if (!ready) {
+      clearEmgPhaseTimer();
+      applyEmgStage("loader");
+      return;
+    }
+    if (emgStageRef.current === "loader" && !emgTimerOnRef.current) {
+      emgTimerOnRef.current = true;
+      emgTimerRef.current = setTimeout(() => {
+        emgTimerRef.current = null;
+        emgTimerOnRef.current = false;
+        applyEmgStage("device");
+      }, 5000);
+    }
+  }, [overlayOpen, activeId, activeStatus]);
+
+  // Live SOS state: poll GET /emergencies/active every 4s while ANY SOS view is on
+  useEffect(() => {
+    // Watch even while the panel is hidden (sticky banner must auto-close too).
+    if (!activeId) return undefined;
+    let stopped = false;
+    const tick = async () => {
+      let list;
+      try {
+        list = await api("/emergencies/active");
+      } catch {
+        return;
+      }
+      if (stopped) return;
+      const cur = activeRef.current;
+      if (!cur || String(cur._id) !== String(activeId)) return;
+      const found = Array.isArray(list) ? list.find((e) => e._id === activeId) : null;
+      if (!found || found.status === "resolved" || found.status === "cancelled") {
+        setActive(null);
+        loadHistory();
+        return;
+      }
+      if (
+        found.status !== cur.status ||
+        JSON.stringify(found.deviceState) !== JSON.stringify(cur.deviceState)
+      ) {
+        setActive(found);
+      }
+    };
+    const timer = setInterval(tick, 4000);
+    return () => {
+      stopped = true;
+      clearInterval(timer);
+    };
+  }, [overlayOpen, activeId]);
 
   return (
     <div>
@@ -245,6 +407,75 @@ export default function Dashboard({ user }) {
       )}
 
       <div className="card hub-card">
+        {!overlayOpen && (
+          <div className="hub-sos-area">
+            <div className="sos-ring">
+              {RING.map((b, i) => {
+                const showBadge = b.badge === "vehicles" && vehicles.length === 0;
+                const IconComp = b.icon;
+                const inner = (
+                  <>
+                    <span className="ha-icon">
+                      <IconComp size={20} />
+                    </span>
+                    <span className="ha-label">{b.label}</span>
+                    {showBadge && <span className="dot" />}
+                  </>
+                );
+                if (b.to) {
+                  return (
+                    <a
+                      key={b.label}
+                      className="ring-btn"
+                      style={{ "--i": i }}
+                      href={b.to}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigate(b.to);
+                      }}
+                    >
+                      {inner}
+                    </a>
+                  );
+                }
+                if (b.href) {
+                  return (
+                    <a key={b.label} className="ring-btn" style={{ "--i": i }} href={b.href}>
+                      {inner}
+                    </a>
+                  );
+                }
+                return (
+                  <a
+                    key={b.label}
+                    className="ring-btn"
+                    style={{ "--i": i }}
+                    href={waShareUrl(active?.location?.lat != null ? active.location : lastLoc)}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={shareWhatsapp}
+                  >
+                    {inner}
+                  </a>
+                );
+              })}
+              <button
+                className={busy ? "sos-btn pressing" : "sos-btn"}
+                onClick={triggerSos}
+                disabled={busy}
+              >
+                <span className="sos-label">SOS</span>
+                <span className="sos-sub-label">{busy ? "Sending..." : "Press for help"}</span>
+              </button>
+            </div>
+            <div className="sos-sub">
+              {busy
+                ? "Sending SOS — getting location..."
+                : "One press → siren, lights & your doctor are alerted."}
+            </div>
+          </div>
+        )}
+
         <div className="hub-head">
           <div className="eyebrow">Emergency Hub</div>
           <h1 className="hero-title">
@@ -311,6 +542,99 @@ export default function Dashboard({ user }) {
           </div>
 
           <div className="hub-ctx-row">
+            <span className="hub-ctx-label">Doctor</span>
+            {familyDoc && familyDoc.name ? (
+              <div className="chip-row">
+                <span className="chip doc-chip">
+                  {doctorLabel(familyDoc.name)}
+                  {familyDoc.specialization ? " · " + familyDoc.specialization : ""}
+                </span>
+                {familyDoc.mobile ? (
+                  <a className="chip call-chip" href={"tel:" + familyDoc.mobile}>
+                    <IconPhone size={14} />
+                    Call
+                  </a>
+                ) : null}
+                <button type="button" className="btn ghost small-btn" onClick={toggleDocPicker}>
+                  Change
+                </button>
+              </div>
+            ) : (
+              <span className="hint" style={{ margin: 0 }}>
+                No family doctor set{" — "}
+                <button type="button" className="btn ghost small-btn" onClick={toggleDocPicker}>
+                  Add Doctor
+                </button>
+                .
+              </span>
+            )}
+            {docPickerOpen && (
+              <div className="doc-picker">
+                <input
+                  type="text"
+                  placeholder="Search doctor by name / specialization"
+                  value={docSearch}
+                  onChange={(e) => setDocSearch(e.target.value)}
+                  autoFocus
+                />
+                {docList === null ? (
+                  <p className="muted small" style={{ margin: "8px 0 0" }}>
+                    Loading doctors...
+                  </p>
+                ) : (
+                  <div className="doc-list">
+                    {docFiltered.length === 0 ? (
+                      <p className="muted small" style={{ margin: "8px 0" }}>
+                        No doctors match your search.
+                      </p>
+                    ) : (
+                      docFiltered.map((d) => (
+                        <button
+                          key={d.id}
+                          type="button"
+                          className="doc-row"
+                          disabled={docBusy}
+                          onClick={() => selectDoctor(d)}
+                        >
+                          <span>{doctorLabel(d.name)}{d.specialization ? " · " + d.specialization : ""}</span>
+                          <span className="muted small">{d.mobile}</span>
+                        </button>
+                      ))
+                    )}
+                    {patientId && familyDoc && familyDoc.name ? (
+                      <button
+                        type="button"
+                        className="doc-row doc-row-clear"
+                        disabled={docBusy}
+                        onClick={() => selectDoctor(null)}
+                      >
+                        {"— None / clear —"}
+                      </button>
+                    ) : null}
+                  </div>
+                )}
+                {docErr && (
+                  <div className="error" style={{ marginTop: 8 }}>
+                    {docErr}
+                  </div>
+                )}
+                <div className="row-actions" style={{ justifyContent: "flex-end", marginTop: 8 }}>
+                  <button
+                    type="button"
+                    className="btn ghost small-btn"
+                    onClick={() => {
+                      setDocPickerOpen(false);
+                      setDocErr("");
+                    }}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="hub-ctx-row">
             <span className="hub-ctx-label">Type</span>
             <select value={emergencyType} onChange={(e) => setEmergencyType(e.target.value)}>
               {!EMERGENCIES.includes(emergencyType) && <option key={emergencyType}>{emergencyType}</option>}
@@ -321,91 +645,29 @@ export default function Dashboard({ user }) {
           </div>
         </div>
 
-        {!overlayOpen && (
-          <div className="hub-sos-area">
-            <div className="stat-strip">
-              <div className="display-stat">
-                <b>{stats.total}</b>
-                <span>Total SOS</span>
-              </div>
-              <div className="display-stat">
-                <b>{stats.active}</b>
-                <span>Active</span>
-              </div>
-              <div className="display-stat">
-                <b>{stats.resolved}</b>
-                <span>Resolved</span>
-              </div>
-            </div>
-
-            <button
-              className={busy ? "sos-btn pressing" : "sos-btn"}
-              onClick={triggerSos}
-              disabled={busy}
-            >
-              <span className="sos-label">SOS</span>
-              <span className="sos-sub-label">{busy ? "Sending..." : "Press for help"}</span>
-            </button>
-
-            <div className="hub-actions">
-              {RING.map((b) => {
-                const showBadge = b.badge === "vehicles" && vehicles.length === 0;
-                const inner = (
-                  <>
-                    <span className="ha-icon">{b.icon}</span>
-                    <span className="ha-label">{b.label}</span>
-                    {showBadge && <span className="dot" />}
-                  </>
-                );
-                if (b.to) {
-                  return (
-                    <a
-                      key={b.label}
-                      className="hub-action"
-                      href={b.to}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        navigate(b.to);
-                      }}
-                    >
-                      {inner}
-                    </a>
-                  );
-                }
-                if (b.href) {
-                  return (
-                    <a key={b.label} className="hub-action" href={b.href}>
-                      {inner}
-                    </a>
-                  );
-                }
-                return (
-                  <a
-                    key={b.label}
-                    className="hub-action"
-                    href={waShareUrl(active?.location?.lat != null ? active.location : lastLoc)}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={shareWhatsapp}
-                  >
-                    {inner}
-                  </a>
-                );
-              })}
-            </div>
+        <div className="stat-strip">
+          <div className="display-stat">
+            <b>{stats.total}</b>
+            <span>Total SOS</span>
           </div>
-        )}
-
-        <div className="sos-sub" style={{ textAlign: "center" }}>
-          {busy
-            ? "Sending SOS — getting location..."
-            : "One press → siren, lights & your doctor are alerted."}
+          <div className="display-stat">
+            <b>{stats.active}</b>
+            <span>Active</span>
+          </div>
+          <div className="display-stat">
+            <b>{stats.resolved}</b>
+            <span>Resolved</span>
+          </div>
         </div>
+
         {error && <div className="error">{error}</div>}
       </div>
 
       <div className="card">
         <h3>SOS history</h3>
+        {emergencies.length === 50 && (
+          <p className="muted small">Showing latest 50 — see Total for all-time count.</p>
+        )}
         {emergencies.length === 0 && <p className="hint">No SOS raised yet.</p>}
         <div className="list">
           {emergencies.map((e) => (
@@ -459,28 +721,33 @@ export default function Dashboard({ user }) {
             </p>
 
             <div className="emg-actions">
-              <a className="call-btn" href={`tel:${activeMobile}`}>
-                📞 Call {activeName} ({activeMobile})
-              </a>
-              {(active.patientSnapshot?.emergencyContacts || []).map((c, i) => (
-                <a key={i} className="call-btn ghost" href={`tel:${c.mobile}`}>
-                  📞 Call {c.name} ({c.relation})
+              {emgDoctorName && emgDoctorMobile ? (
+                <a className="call-btn" href={`tel:${emgDoctorMobile}`}>
+                  📞 Call {emgDoctorName} ({emgDoctorMobile})
                 </a>
-              ))}
-              <a className="call-btn yellow" href="tel:108">
-                🚑 Call 108 Ambulance
-              </a>
-              <a className="call-btn" href="tel:112">
-                📞 Call 112 National Emergency
-              </a>
-              <a className="call-btn yellow" href={`https://wa.me/?text=${encodeURIComponent(waText)}`} target="_blank" rel="noreferrer">
-                💬 Share on WhatsApp
-              </a>
+              ) : (
+                <a className="call-btn" href={`tel:${activeMobile}`}>
+                  📞 Call {activeName} ({activeMobile})
+                </a>
+              )}
+              {emgFamilyContact && (
+                <a className="call-btn ghost compact" href={`tel:${emgFamilyContact.mobile}`}>
+                  📞 Call {emgFamilyContact.name}{emgFamilyContact.relation ? ` (${emgFamilyContact.relation})` : ""}
+                </a>
+              )}
             </div>
 
-            <div style={{ marginTop: 16 }}>
-              <DevicePanel state={active.deviceState} />
-            </div>
+            {emgStage === "loader" ? (
+              <div className="emg-loader-wrap">
+                <AmbulanceLoader
+                  title={activeStatus === "active" ? emgLoaderTitle : "Getting car device ready"}
+                />
+              </div>
+            ) : (
+              <div style={{ marginTop: 16 }}>
+                <DevicePanel state={active.deviceState} />
+              </div>
+            )}
 
             <div className="row-actions" style={{ justifyContent: "center" }}>
               <button className="btn danger small-btn" onClick={cancelSos}>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../api.js";
+import { doctorLabel } from "../format.js";
 
 const EMPTY = {
   name: "",
@@ -28,6 +29,9 @@ export default function PatientsPage() {
   const [busy, setBusy] = useState(false);
   const [selected, setSelected] = useState(null);
   const [tracker, setTracker] = useState({ note: "", bp: "", sugar: "", heartRate: "", weight: "" });
+  const [doctors, setDoctors] = useState([]);
+  const [selectedDoctorId, setSelectedDoctorId] = useState("");
+  const [doctorSearch, setDoctorSearch] = useState("");
 
   async function load() {
     try {
@@ -38,6 +42,7 @@ export default function PatientsPage() {
   }
   useEffect(() => {
     load();
+    api("/doctors").then(setDoctors).catch(() => {});
   }, []);
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
@@ -45,6 +50,35 @@ export default function PatientsPage() {
   const setContact = (i, k) => (e) =>
     setContacts(contacts.map((c, idx) => (idx === i ? { ...c, [k]: e.target.value } : c)));
 
+  function onDoctorChange(e) {
+    const id = e.target.value;
+    setSelectedDoctorId(id);
+    const d = doctors.find((x) => String(x.id) === String(id));
+    if (!d) {
+      setForm((f) => ({ ...f, docName: "", docDegree: "", docSpecialization: "", docMobile: "" }));
+      return;
+    }
+    setForm((f) => ({
+      ...f,
+      docName: d.name || "",
+      docDegree: d.degree || "",
+      docSpecialization: d.specialization || "",
+      docMobile: d.mobile || ""
+    }));
+  }
+
+  const doctorQuery = doctorSearch.trim().toLowerCase();
+  const filteredDoctors = doctors.filter((d) => {
+    if (!doctorQuery) return true;
+    return [d.name, d.specialization, d.mobile]
+      .filter(Boolean)
+      .some((v) => String(v).toLowerCase().includes(doctorQuery));
+  });
+  const selectedDoctor = doctors.find((d) => String(d.id) === String(selectedDoctorId));
+  const doctorOptions =
+    selectedDoctor && !filteredDoctors.some((d) => String(d.id) === String(selectedDoctorId))
+      ? [...filteredDoctors, selectedDoctor]
+      : filteredDoctors;
   function addContact() {
     if (contacts.length >= 4) return;
     setContacts([...contacts, { ...EMPTY_CONTACT }]);
@@ -59,11 +93,23 @@ export default function PatientsPage() {
     e.preventDefault();
     setError("");
 
+    if (!form.name.trim()) {
+      setError("Patient name is required.");
+      return;
+    }
+    if (!/^[6-9]\d{9}$/.test(form.mobile.trim())) {
+      setError("Enter a valid 10-digit patient mobile number (starting 6-9).");
+      return;
+    }
     const validContacts = contacts.filter((c) => c.name.trim() || c.mobile.trim());
+    if (validContacts.length === 0) {
+      setError("Add at least one emergency contact (your closest family member) — name + 10-digit mobile.");
+      return;
+    }
     for (let i = 0; i < validContacts.length; i++) {
       const c = validContacts[i];
       if (!c.name.trim() || !/^[6-9]\d{9}$/.test(c.mobile.trim())) {
-        setError(`Contact #${i + 1}: name + 10-digit mobile required`);
+        setError(`Emergency contact #${i + 1}: name + 10-digit mobile required`);
         return;
       }
     }
@@ -86,7 +132,8 @@ export default function PatientsPage() {
             name: form.docName,
             degree: form.docDegree,
             specialization: form.docSpecialization,
-            mobile: form.docMobile
+            mobile: form.docMobile,
+            doctorId: selectedDoctorId || null
           },
           emergencyContacts: validContacts.map((c) => ({
             name: c.name.trim(),
@@ -97,6 +144,8 @@ export default function PatientsPage() {
       });
       setForm(EMPTY);
       setContacts([{ ...EMPTY_CONTACT }]);
+      setSelectedDoctorId("");
+      setDoctorSearch("");
       await load();
       setTab("track");
     } catch (err) {
@@ -163,7 +212,7 @@ export default function PatientsPage() {
               inputMode="numeric"
               maxLength={10}
               value={form.mobile}
-              onChange={set("mobile")}
+              onChange={(e) => setForm({ ...form, mobile: e.target.value.replace(/\D/g, "") })}
               placeholder="10-digit mobile"
             />
             <label>Relation</label>
@@ -201,6 +250,28 @@ export default function PatientsPage() {
               placeholder="e.g. Heart attack / Chest pain"
             />
             <h3 className="sub">Patient's Personal Doctor</h3>
+            <label>Family Doctor</label>
+            <input
+              type="text"
+              value={doctorSearch}
+              onChange={(e) => setDoctorSearch(e.target.value)}
+              placeholder="Search doctor by name / specialization"
+              style={{ marginBottom: 6 }}
+            />
+            <select value={selectedDoctorId} onChange={onDoctorChange}>
+              <option value="">— None / manual —</option>
+              {doctorOptions.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {doctorLabel(d.name)}
+                  {d.specialization ? " · " + d.specialization : ""}
+                </option>
+              ))}
+              {filteredDoctors.length === 0 && !selectedDoctor && (
+                <option value="" disabled>
+                  No doctor matches “{doctorSearch}”
+                </option>
+              )}
+            </select>
             <label>Doctor name</label>
             <input value={form.docName} onChange={set("docName")} placeholder="Doctor name" />
             <label>Degree</label>
@@ -218,8 +289,11 @@ export default function PatientsPage() {
           </div>
           <div className="full">
             <h3 className="sub" style={{ marginTop: 0 }}>
-              Emergency contacts (who to call in SOS — up to 4)
+              Emergency contact — one of your closest ones / a family member
             </h3>
+            <p className="hint">
+              This first contact is the “family member” button shown when an SOS is active. You can add up to 4.
+            </p>
             <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr auto", gap: "8px", marginBottom: 6 }}>
               <span className="muted small" style={{ fontWeight: 800, textTransform: "uppercase", fontSize: 11.5 }}>
                 Name
@@ -277,7 +351,7 @@ export default function PatientsPage() {
                 + Add another contact
               </button>
             )}
-            <p className="hint">These people are called instantly when this patient presses SOS.</p>
+            <p className="hint">These people are called instantly when this patient presses SOS. The first contact is shown as the family-member call button during an active SOS.</p>
           </div>
           <div className="full">
             <button className="btn primary" disabled={busy}>
@@ -366,10 +440,14 @@ export default function PatientsPage() {
                       <td>Personal doctor</td>
                       <td>
                         {selected.personalDoctor?.name
-                          ? `${selected.personalDoctor.name} ${selected.personalDoctor.degree || ""} · ${
-                              selected.personalDoctor.specialization || ""
-                            } · ${selected.personalDoctor.mobile || ""}`
-                          : "—"}
+                          ? [
+                          [selected.personalDoctor.name, selected.personalDoctor.degree].filter(Boolean).join(" "),
+                          selected.personalDoctor.specialization,
+                          selected.personalDoctor.mobile
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")
+                        : "—"}
                       </td>
                     </tr>
                   </tbody>

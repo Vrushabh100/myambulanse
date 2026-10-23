@@ -1,4 +1,4 @@
-﻿const TOKEN_KEY = "ma_token";
+const TOKEN_KEY = "ma_token";
 const USER_KEY = "ma_user";
 const MOBILE_KEY = "ma_mobile";
 const DEFAULT_TIMEOUT_MS = 8000;

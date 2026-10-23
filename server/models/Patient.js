@@ -32,7 +32,8 @@ const patientSchema = new mongoose.Schema(
       name: { type: String, default: "" },
       degree: { type: String, default: "" },
       specialization: { type: String, default: "" },
-      mobile: { type: String, default: "" }
+      mobile: { type: String, default: "" },
+      doctorId: { type: mongoose.Schema.Types.ObjectId, default: null }
     },
     defaultEmergency: { type: String, default: "General emergency" },
     emergencyContacts: {

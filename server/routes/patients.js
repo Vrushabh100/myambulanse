@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import Patient from "../models/Patient.js";
 import { authMiddleware } from "./auth.js";
+import { validateEmergencyContacts } from "../utils/contacts.js";
 
 const router = express.Router();
 router.use(authMiddleware);
@@ -12,21 +13,6 @@ router.param("id", (req, res, next, val) => {
   }
   next();
 });
-
-function validateEmergencyContacts(list) {
-  if (list == null) return { contacts: undefined };
-  if (!Array.isArray(list)) return { error: "emergencyContacts must be an array" };
-  const contacts = [];
-  for (const c of list.slice(0, 4)) {
-    const name = String(c?.name ?? "").trim();
-    const mobile = String(c?.mobile ?? "").trim();
-    const relation = String(c?.relation ?? "").trim();
-    if (!name) return { error: "Each emergency contact needs a name" };
-    if (!/^\d{10}$/.test(mobile)) return { error: "Each emergency contact needs a 10-digit mobile" };
-    contacts.push({ name, mobile, relation });
-  }
-  return { contacts };
-}
 
 router.get("/", async (req, res) => {
   const patients = await Patient.find({ ownerId: req.user.id }).sort({ createdAt: -1 });
@@ -70,7 +56,9 @@ router.post("/", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
   try {
-    const update = { ...req.body };
+    const ALLOWED = ["name","mobile","relation","age","gender","bloodGroup","diseases","allergies","personalDoctor","defaultEmergency","emergencyContacts"];
+    const update = {};
+    for (const k of ALLOWED) if (k in req.body) update[k] = req.body[k];
     if ("emergencyContacts" in update) {
       const contactCheck = validateEmergencyContacts(req.body.emergencyContacts);
       if (contactCheck.error) return res.status(400).json({ error: contactCheck.error });

@@ -1,6 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
 import Vehicle from "../models/Vehicle.js";
+import Patient from "../models/Patient.js";
 import { authMiddleware } from "./auth.js";
 
 const router = express.Router();
@@ -89,7 +90,18 @@ router.put("/:id", async (req, res) => {
     if (ownerName) v.ownerName = ownerName.trim();
     if (vehicleModel !== undefined) v.vehicleModel = vehicleModel;
     if (color !== undefined) v.color = color;
-    if (assignedPatientId !== undefined) v.assignedPatientId = assignedPatientId || null;
+    if (assignedPatientId !== undefined && assignedPatientId !== null && assignedPatientId !== "") {
+      if (!mongoose.Types.ObjectId.isValid(assignedPatientId)) {
+        return res.status(400).json({ error: "assignedPatientId is not a valid id" });
+      }
+      const owned = await Patient.exists({ _id: assignedPatientId, ownerId: req.user.id });
+      if (!owned) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+      v.assignedPatientId = assignedPatientId;
+    } else if (assignedPatientId !== undefined) {
+      v.assignedPatientId = null;
+    }
     await v.save();
     res.json(v);
   } catch (e) {
