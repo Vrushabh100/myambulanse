@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "cd client && npm install && npm run build"
+    "build": "npm --prefix client install && npm --prefix client run build"
   },
   "dependencies": {
     "cors": "^2.8.5",
