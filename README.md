@@ -1,4 +1,4 @@
-﻿# MyAmbulance
+# MyAmbulance
 
 Ambulance dispatch app: React (Vite) client + Express/Mongoose API. In production the
 server serves the built client from `client/dist`, so everything runs on one origin
@@ -62,7 +62,9 @@ git push -u origin main
 ## Deploy (two Vercel projects)
 
 Two projects are imported from the SAME repo. The client and API get different
-domains, so the client calls the API by absolute URL and the API allows that origin.
+domains; to avoid cross-origin/CORS entirely the site project proxies `/api/*` to the
+API project with an external rewrite (committed as `client/vercel.json`), so the
+client's relative `/api/...` calls keep working unchanged.
 
 Each Vercel project is configured entirely in the Vercel dashboard. In BOTH projects, leave the **Build Command** and **Output
 Directory** fields **EMPTY**: the framework presets detect and run the correct build.
@@ -75,9 +77,10 @@ as `cd: client: No such file or directory`.
 1. Vercel -> **Add New... -> Project -> Import** the repo.
 2. Root Directory: `client`  |  Framework Preset: **Vite**.
 3. Build Command: *(leave EMPTY)*  |  Output Directory: *(leave EMPTY)*.
-4. Environment Variable (Production + Preview): `VITE_API_BASE = https://<api-project>.vercel.app`.
-   This value is baked in at build time, so **redeploy** after changing it.
-5. Deploy.
+4. Environment Variables: **none needed** - the committed `client/vercel.json`
+   proxies `/api/*` to the API project, so no `VITE_API_BASE` is required.
+5. Deploy. If the API project URL ever changes, update `client/vercel.json` and
+   redeploy the site.
 
 **Project B (API):**
 
@@ -90,7 +93,8 @@ as `cd: client: No such file or directory`.
    - `JWT_SECRET` - long random string (required in production).
    - `NODE_ENV=production` - production gates (no dev secret).
    - `TRUST_PROXY=1` - Vercel runs behind a proxy, so `X-Forwarded-For` is honored for client IPs.
-   - `CORS_ORIGINS=https://<site-project>.vercel.app` - browser origin allowed to call the API.
+   - `CORS_ORIGINS` - optional; keep it only if the API is later called cross-origin
+     without the rewrite (the same-origin `/api/*` proxy needs no CORS).
 5. Deploy.
 
 MongoDB Atlas -> **Network Access** -> allow `0.0.0.0/0` (or Vercel egress IPs).
@@ -100,7 +104,8 @@ MongoDB Atlas -> **Network Access** -> allow `0.0.0.0/0` (or Vercel egress IPs).
 1. `https://<api-project>.vercel.app/api/health` -> `{"ok":true,"db":"connected"}`.
 2. Open the site URL and log in with `9822000101`.
 
-The client calls the API through `VITE_API_BASE` (absolute) in this setup. When
-`VITE_API_BASE` is unset the client falls back to relative `/api/...`, which is what
-local dev and same-origin deploys use. MongoDB Atlas is required; if Atlas is
-unreachable the API returns 503 and retries every 15s; data is never stored in memory.
+The client calls `/api/...` relatively; the site project rewrites those to the API
+project, so neither `VITE_API_BASE` nor `CORS_ORIGINS` is needed. Local dev uses the
+`/api` proxy in `client/vite.config.js` (to `localhost:5050`). MongoDB Atlas is
+required; if Atlas is unreachable the API returns 503 and retries every 15s; data is
+never stored in memory.
