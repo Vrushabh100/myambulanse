@@ -10,6 +10,7 @@ import patientRoutes from "./routes/patients.js";
 import vehicleRoutes from "./routes/vehicles.js";
 import emergencyRoutes from "./routes/emergencies.js";
 import doctorRoutes from "./routes/doctors.js";
+import adminRoutes from "./routes/admin.js";
 
 // Node's default resolver reads 127.0.0.1 (dead stub on this machine) -> SRV queries
 // for mongodb+srv:// get ECONNREFUSED. Force real DNS servers for this process.
@@ -26,6 +27,30 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+app.disable("x-powered-by");
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com data:",
+  "img-src 'self' data:",
+  "connect-src 'self'" + (process.env.CSP_CONNECT_SRC ? " " + process.env.CSP_CONNECT_SRC : ""),
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'"
+].join("; ");
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy", "geolocation=(self), camera=(), microphone=()");
+  res.setHeader("Content-Security-Policy", CSP);
+  if (process.env.NODE_ENV === "production") {
+    res.setHeader("Strict-Transport-Security", "max-age=15552000; includeSubDomains");
+  }
+  next();
+});
 const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || "http://localhost:5173,http://localhost:5050")
   .split(",").map((s) => s.trim()).filter(Boolean);
 app.use(cors({
@@ -35,6 +60,12 @@ app.use(cors({
   }
 }));
 app.use(express.json({ limit: "2mb" }));
+app.use((err, req, res, next) => {
+  if (err && (err.type === "entity.parse.failed" || err.status === 400)) {
+    return res.status(400).json({ error: "Invalid request body" });
+  }
+  next(err);
+});
 
 // Serverless hosts (Vercel Express preset) never call start(), so make sure the
 // Atlas connection is attempted before any API request is served.
@@ -125,6 +156,7 @@ app.use("/api/patients", patientRoutes);
 app.use("/api/vehicles", vehicleRoutes);
 app.use("/api/emergencies", emergencyRoutes);
 app.use("/api/doctors", doctorRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Unknown /api paths must answer JSON 404 — never an empty/HTML body.
 app.use("/api", (req, res) => res.status(404).json({ error: "Not found" }));
@@ -166,3 +198,10 @@ export default app;
 if (!process.env.VERCEL) {
   start().catch((e) => { console.error("Failed to start server:", e); process.exit(1); });
 }
+
+// Final error handler: never leak stack traces or HTML error pages from the API.
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", (err && err.message) || err);
+  if (res.headersSent) return next(err);
+  res.status(err && err.status ? err.status : 500).json({ error: "Something went wrong" });
+});

@@ -13,9 +13,18 @@ import {
   clearSession,
   saveMobile,
   getSavedMobile,
-  clearSavedMobile
+  clearSavedMobile,
+  getDeviceToken,
+  saveDeviceToken,
+  clearDeviceToken,
+  getRecovery,
+  setRecovery,
+  clearRecovery
 } from "./api.js";
 import AmbulanceLoader from "./components/AmbulanceLoader.jsx";
+import ForgotMpinPage from "./pages/ForgotMpinPage.jsx";
+import SetMpinPage from "./pages/SetMpinPage.jsx";
+import AdminRecoveryPage from "./pages/AdminRecoveryPage.jsx";
 
 function getVisited() {
   try {
@@ -50,6 +59,12 @@ function Shell({ user, onLogout, children }) {
       ];
   return (
     <div className="app">
+      {getRecovery() && (
+        <div className="recovery-banner">
+          Recovery mode — you logged in with your default MPIN.
+          <Link to="/login/mpin/setmpin?recovery=1">Change security question &amp; set a new MPIN</Link>
+        </div>
+      )}
       <header className="topbar">
         <div className="brand">
           <span className="brand-icon"><AmbulanceLoader mini /></span>
@@ -157,7 +172,7 @@ function ProfilePage({ user, onLogout }) {
         </table>
         <div className="info-ok">
           <span>✅</span>
-          <span>Auto-login active on this network — you won't be asked to log in again from here.</span>
+          <span>Auto-login active on this device — this device stays signed in until you log out.</span>
         </div>
         <div className="row-actions">
           <button className="btn danger" onClick={onLogout}>
@@ -185,45 +200,33 @@ export default function App() {
           const u = me && me.user ? me.user : me;
           if (cancelled) return;
           setSession(token, u);
+          setRecovery(me && me.recovery === true);
           setUser(u);
           setBooting(false);
           return;
         } catch (e) {
           if (cancelled) return;
-          if (!isHttpError(e)) {
-            // Timeout or network failure: the server never answered, so the stored
-            // session may still be valid. Keep storage and finish booting so the
-            // user can retry instead of being kicked to login.
-            setBooting(false);
-            return;
-          }
-          // Real auth error from the server (expired token, user not found, ...).
+          if (!isHttpError(e)) { setBooting(false); return; }
           clearSession();
+          clearRecovery();
         }
       }
       if (cancelled) return;
-      const mobile = getSavedMobile();
-      if (mobile) {
+      const dt = getDeviceToken();
+      if (dt) {
         try {
-          const data = await api("/auth/auto", { method: "POST", body: { mobile } });
+          const data = await api("/auth/device/login", { method: "POST", body: { deviceToken: dt } });
           if (cancelled) return;
           setSession(data.token, data.user);
-          saveMobile(mobile);
+          saveDeviceToken(data.deviceToken);
+          setRecovery(false);
           setUser(data.user);
           setBooting(false);
           return;
         } catch (e) {
           if (cancelled) return;
-          if (!isHttpError(e)) {
-            // Timeout or network failure: keep the saved mobile so the next load
-            // can auto-login again once the server is reachable.
-            setBooting(false);
-            return;
-          }
-          // Server answered: only clear saved mobile on real rejections
-          // (401 ip_mismatch, 404 not registered, ...).
-          clearSession();
-          clearSavedMobile();
+          if (!isHttpError(e)) { setBooting(false); return; }
+          clearDeviceToken();
         }
       }
       if (!cancelled) setBooting(false);
@@ -238,9 +241,10 @@ export default function App() {
     setUser(u);
   };
 
-  const handleLogout = () => {
-    clearSession();
-    clearSavedMobile();
+  const handleLogout = async () => {
+    const dt = getDeviceToken();
+    try { await api("/auth/device/revoke", { method: "POST", body: { deviceToken: dt } }); } catch { /* ignore */ }
+    clearSession(); clearDeviceToken(); clearRecovery(); clearSavedMobile();
     setUser(null);
     navigate("/auth", { replace: true });
   };
@@ -253,6 +257,10 @@ export default function App() {
         <Route path="/auth/register" element={<AuthPage mode="register" onLogin={handleLogin} />} />
         <Route path="/auth/login" element={<AuthPage mode="login" onLogin={handleLogin} />} />
         <Route path="/auth" element={<Navigate to={authLanding()} replace />} />
+        <Route path="/login/mpin/forgotmpin" element={<ForgotMpinPage />} />
+        <Route path="/login/mpin/setmpin" element={<SetMpinPage onAuthed={(u) => setUser(u)} />} />
+        <Route path="/admin/recovery" element={<AdminRecoveryPage />} />
+        <Route path="/admin" element={<Navigate to="/admin/recovery" replace />} />
         <Route path="*" element={<Navigate to={authLanding()} replace />} />
       </Routes>
     );
@@ -269,6 +277,10 @@ export default function App() {
         <Route path="/vehicles" element={<VehiclesPage user={user} />} />
         <Route path="/doctor" element={<DoctorPage user={user} />} />
         <Route path="/profile" element={<ProfilePage user={user} onLogout={handleLogout} />} />
+        <Route path="/login/mpin/forgotmpin" element={<ForgotMpinPage />} />
+        <Route path="/login/mpin/setmpin" element={<SetMpinPage user={user} onAuthed={(u) => setUser(u)} />} />
+        <Route path="/admin/recovery" element={<AdminRecoveryPage />} />
+        <Route path="/admin" element={<Navigate to="/admin/recovery" replace />} />
         <Route path="/auth" element={<Navigate to="/" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

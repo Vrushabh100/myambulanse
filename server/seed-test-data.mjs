@@ -294,7 +294,22 @@ const REFERRAL_NOTE = "In OT, you handle";
 
 async function ensureIdentity({ mobile, name, role, address, doctorProfile }) {
   const reg = await withRetry(
-    () => req("/auth/register", { method: "POST", body: { mobile, name, role, address, doctorProfile } }),
+    // Freshly registered demo accounts use personal MPIN 246813 with a known
+    // recovery answer. Pre-existing (legacy) demo accounts migrated by
+    // migrate-mpin.mjs use the legacy personal MPIN 123456 instead.
+    () => req("/auth/register", {
+      method: "POST",
+      body: {
+        mobile,
+        name,
+        role,
+        address,
+        doctorProfile,
+        mpin: "246813",
+        securityQuestion: "What is your best friend's name?",
+        answer: "myambulance"
+      }
+    }),
     `register ${mobile}`
   );
   if (reg.ok && reg.data?.token) {
@@ -302,7 +317,8 @@ async function ensureIdentity({ mobile, name, role, address, doctorProfile }) {
   }
   if (reg.status === 409) {
     const login = await withRetry(
-      () => req("/auth/login", { method: "POST", body: { mobile } }),
+      // Existing/migrated demo accounts were backfilled with the legacy MPIN 123456.
+      () => req("/auth/login", { method: "POST", body: { mobile, mpin: "123456" } }),
       `login ${mobile}`
     );
     if (login.ok && login.data?.token) {

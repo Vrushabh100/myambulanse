@@ -38,6 +38,23 @@ if you want the plain start script with `.env` loaded.
 - `TRUST_PROXY=1` - set on Render (or behind any trusted reverse proxy) so `X-Forwarded-For` is honored for client IPs.
 - `CORS_ORIGINS` - optional comma-separated list of extra browser origins allowed to call the API (same-origin deployments can leave this unset).
 
+## MPIN authentication (security)
+
+Login now requires a mobile number and a 6-digit MPIN (no passwords).
+
+- `JWT_SECRET` - long random secret used to sign JWTs (required in production).
+- `DEFAULT_MPIN_ENC_KEY` - 32-byte key (base64 or 64-hex) used to encrypt each user's default (owner-only) MPIN.
+- `ADMIN_API_KEY` - long random key for the owner-only recovery admin API (`x-admin-key` header).
+- `TRUST_PROXY=1` - set in production (Vercel/Render) so `X-Forwarded-For` is honored.
+- `CSP_CONNECT_SRC` - optional extra origin allowed in CSP `connect-src` when client and API are on different origins.
+
+Migrate existing users to the MPIN schema:
+
+```powershell
+cd server && node --env-file=.env migrate-mpin.mjs
+```
+
+The owner can look up a user's default MPIN via the admin API `GET /api/admin/user/:mobile` with the header `x-admin-key`.
 ## Push to GitHub
 
 ```powershell

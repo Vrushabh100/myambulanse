@@ -35,6 +35,28 @@ export function getSavedMobile() {
 export function clearSavedMobile() {
   localStorage.removeItem(MOBILE_KEY);
 }
+const DEVICE_KEY = "ma_device_token";
+const RECOVERY_KEY = "ma_recovery";
+
+export function getDeviceToken() {
+  try { return localStorage.getItem(DEVICE_KEY) || ""; } catch { return ""; }
+}
+export function saveDeviceToken(t) {
+  try { if (t) localStorage.setItem(DEVICE_KEY, t); } catch {}
+}
+export function clearDeviceToken() {
+  try { localStorage.removeItem(DEVICE_KEY); } catch {}
+}
+export function getRecovery() {
+  try { return localStorage.getItem(RECOVERY_KEY) === "1"; } catch { return false; }
+}
+export function setRecovery(on) {
+  try { if (on) localStorage.setItem(RECOVERY_KEY, "1"); else localStorage.removeItem(RECOVERY_KEY); } catch {}
+}
+export function clearRecovery() {
+  try { localStorage.removeItem(RECOVERY_KEY); } catch {}
+}
+
 
 // Thrown only when the server actually responded with a non-OK HTTP status.
 // Timeouts and network failures throw a plain Error instead, so callers can tell

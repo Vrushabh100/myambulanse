@@ -69,17 +69,19 @@
   deletes or modifies records it did not create).
 </div>
 
+<div class="note"><b>Login = 10-digit mobile + 6-digit MPIN. Demo MPIN: 123456.</b> Forgot MPIN uses your security question; if you forget both, MyAmbulance customer care +91 8007470450 can help (owner looks up your default MPIN in the admin console at <span class="mono">/admin/recovery</span>).</div>
+
 <h2>Table 1 â€” Doctors (log in to see the doctor console)</h2>
 <table>
   <thead>
-    <tr><th>#</th><th>Name</th><th>Mobile (login)</th><th>Degree</th><th>Specialization</th></tr>
+    <tr><th>#</th><th>Name</th><th>Mobile (login)</th><th>MPIN</th><th>Degree</th><th>Specialization</th></tr>
   </thead>
   <tbody>
-    <tr><td>1</td><td>Dr. Aarav Sharma</td><td class="mono">9822000001</td><td>MD</td><td>Cardiology</td></tr>
-    <tr><td>2</td><td>Dr. Priya Deshmukh</td><td class="mono">9822000002</td><td>MS</td><td>Neurology</td></tr>
-    <tr><td>3</td><td>Dr. Rohan Singh</td><td class="mono">9822000003</td><td>MBBS</td><td>Orthopedics</td></tr>
-    <tr><td>4</td><td>Dr. Ananya Verma</td><td class="mono">9822000004</td><td>MD</td><td>Pediatrics</td></tr>
-    <tr><td>5</td><td>Dr. Kabir Nair</td><td class="mono">9822000005</td><td>MS</td><td>Trauma Surgery</td></tr>
+    <tr><td>1</td><td>Dr. Aarav Sharma</td><td class="mono">9822000001</td><td class="mono">123456</td><td>MD</td><td>Cardiology</td></tr>
+    <tr><td>2</td><td>Dr. Priya Deshmukh</td><td class="mono">9822000002</td><td class="mono">123456</td><td>MS</td><td>Neurology</td></tr>
+    <tr><td>3</td><td>Dr. Rohan Singh</td><td class="mono">9822000003</td><td class="mono">123456</td><td>MBBS</td><td>Orthopedics</td></tr>
+    <tr><td>4</td><td>Dr. Ananya Verma</td><td class="mono">9822000004</td><td class="mono">123456</td><td>MD</td><td>Pediatrics</td></tr>
+    <tr><td>5</td><td>Dr. Kabir Nair</td><td class="mono">9822000005</td><td class="mono">123456</td><td>MS</td><td>Trauma Surgery</td></tr>
   </tbody>
 </table>
 
@@ -87,13 +89,13 @@
 <table>
   <thead>
     <tr>
-      <th>#</th><th>Name</th><th>Mobile (login)</th><th>Address city</th>
+      <th>#</th><th>Name</th><th>Mobile (login)</th><th>MPIN</th><th>Address city</th>
       <th>Family patient</th><th>Conditions</th><th>Car</th><th>Device IDs</th><th>Emergency contacts</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>1</td><td>Rahul Sharma</td><td class="mono">9822000101</td><td>Nagpur</td>
+      <td>1</td><td>Rahul Sharma</td><td class="mono">9822000101</td><td class="mono">123456</td><td>Nagpur</td>
       <td><b>Suresh Sharma</b><br><span class="muted small">Father Â· 62 Â· Male Â· B+</span></td>
       <td class="small">Diabetes, Hypertension<br><span class="muted">Allergy: Penicillin</span></td>
       <td class="mono">MH31AB1101<br><span class="muted">Maruti Swift, White</span></td>
@@ -101,7 +103,7 @@
       <td class="small">Meena Sharma (Wife) <span class="mono">9822000191</span><br>Ritu Sharma (Sister) <span class="mono">9822000192</span></td>
     </tr>
     <tr>
-      <td>2</td><td>Priya Kulkarni</td><td class="mono">9822000102</td><td>Pune</td>
+      <td>2</td><td>Priya Kulkarni</td><td class="mono">9822000102</td><td class="mono">123456</td><td>Pune</td>
       <td><b>Ashok Kulkarni</b><br><span class="muted small">Father Â· 58 Â· Male Â· O+</span></td>
       <td class="small">Asthma<br><span class="muted">Allergy: Penicillin</span></td>
       <td class="mono">MH31AB1102<br><span class="muted">Hyundai Creta, Silver</span></td>
@@ -109,7 +111,7 @@
       <td class="small">Sunita Kulkarni (Wife) <span class="mono">9822000193</span></td>
     </tr>
     <tr>
-      <td>3</td><td>Amit Patil</td><td class="mono">9822000103</td><td>Nashik</td>
+      <td>3</td><td>Amit Patil</td><td class="mono">9822000103</td><td class="mono">123456</td><td>Nashik</td>
       <td><b>Sunita Patil</b><br><span class="muted small">Mother Â· 55 Â· Female Â· A+</span></td>
       <td class="small">Thyroid, Arthritis<br><span class="muted">Allergy: Sulfa drugs</span></td>
       <td class="mono">MH31AB1103<br><span class="muted">Tata Nexon, Blue</span></td>
@@ -117,7 +119,7 @@
       <td class="small">Amit Patil (Son) <span class="mono">9822000103</span><br>Gita Patil (Aunt) <span class="mono">9822000194</span></td>
     </tr>
     <tr>
-      <td>4</td><td>Sneha Kulkarni</td><td class="mono">9822000104</td><td>Amravati</td>
+      <td>4</td><td>Sneha Kulkarni</td><td class="mono">9822000104</td><td class="mono">123456</td><td>Amravati</td>
       <td><b>Sneha Kulkarni</b><br><span class="muted small">Self Â· 28 Â· Female Â· AB+</span></td>
       <td class="small">Migraine<br><span class="muted">Allergies: none known</span></td>
       <td class="mono">MH31AB1104<br><span class="muted">Honda City, White</span></td>
@@ -125,7 +127,7 @@
       <td class="small">Mahesh Kulkarni (Husband) <span class="mono">9822000195</span></td>
     </tr>
     <tr>
-      <td>5</td><td>Vikram Rao</td><td class="mono">9822000105</td><td>Wardha</td>
+      <td>5</td><td>Vikram Rao</td><td class="mono">9822000105</td><td class="mono">123456</td><td>Wardha</td>
       <td><b>Lakshmi Rao</b><br><span class="muted small">Mother Â· 70 Â· Female Â· Oâˆ’</span></td>
       <td class="small">Diabetes, Heart valve replacement 2021<br><span class="muted">Allergy: Dust</span></td>
       <td class="mono">MH31AB1105<br><span class="muted">Mahindra Scorpio, Black</span></td>
@@ -133,7 +135,7 @@
       <td class="small">Vikram Rao (Son) <span class="mono">9822000105</span><br>Anita Rao (DIL) <span class="mono">9822000196</span></td>
     </tr>
     <tr>
-      <td>6</td><td>Ananya Joshi</td><td class="mono">9822000106</td><td>Chandrapur</td>
+      <td>6</td><td>Ananya Joshi</td><td class="mono">9822000106</td><td class="mono">123456</td><td>Chandrapur</td>
       <td><b>Dev Joshi</b><br><span class="muted small">Father Â· 49 Â· Male Â· Bâˆ’</span></td>
       <td class="small">Hypertension<br><span class="muted">Allergy: Dust</span></td>
       <td class="mono">MH31AB1106<br><span class="muted">Maruti Baleno, Red</span></td>
@@ -141,7 +143,7 @@
       <td class="small">Radha Joshi (Wife) <span class="mono">9822000197</span></td>
     </tr>
     <tr>
-      <td>7</td><td>Karan Mehta</td><td class="mono">9822000107</td><td>Yavatmal</td>
+      <td>7</td><td>Karan Mehta</td><td class="mono">9822000107</td><td class="mono">123456</td><td>Yavatmal</td>
       <td><b>Isha Mehta</b><br><span class="muted small">Spouse Â· 32 Â· Female Â· Aâˆ’</span></td>
       <td class="small">Pregnancy week 28 (normal)<br><span class="muted">Allergies: none</span></td>
       <td class="mono">MH31AB1107<br><span class="muted">Kia Sonet, Orange</span></td>
@@ -149,7 +151,7 @@
       <td class="small">Karan Mehta (Husband) <span class="mono">9822000107</span></td>
     </tr>
     <tr>
-      <td>8</td><td>Divya Iyer</td><td class="mono">9822000108</td><td>Bhandara</td>
+      <td>8</td><td>Divya Iyer</td><td class="mono">9822000108</td><td class="mono">123456</td><td>Bhandara</td>
       <td><b>Mohan Iyer</b><br><span class="muted small">Father Â· 66 Â· Male Â· O+</span></td>
       <td class="small">COPD<br><span class="muted">Allergies: Dust, Smoke</span></td>
       <td class="mono">MH31AB1108<br><span class="muted">Toyota Innova, Grey</span></td>
@@ -157,7 +159,7 @@
       <td class="small">Shanti Iyer (Wife) <span class="mono">9822000198</span><br>Divya Iyer (Daughter) <span class="mono">9822000108</span></td>
     </tr>
     <tr>
-      <td>9</td><td>Rohan Gupta</td><td class="mono">9822000109</td><td>Gondia</td>
+      <td>9</td><td>Rohan Gupta</td><td class="mono">9822000109</td><td class="mono">123456</td><td>Gondia</td>
       <td><b>Aarav Gupta</b><br><span class="muted small">Son Â· 8 Â· Male Â· A+</span></td>
       <td class="small">Asthma (mild)<br><span class="muted">Allergy: Dust</span></td>
       <td class="mono">MH31AB1109<br><span class="muted">Hyundai i10, White</span></td>
@@ -165,7 +167,7 @@
       <td class="small">Neha Gupta (Mother) <span class="mono">9822000199</span></td>
     </tr>
     <tr>
-      <td>10</td><td>Meera Kaur</td><td class="mono">9822000110</td><td>Gadchiroli</td>
+      <td>10</td><td>Meera Kaur</td><td class="mono">9822000110</td><td class="mono">123456</td><td>Gadchiroli</td>
       <td><b>Gurpreet Singh</b><br><span class="muted small">Father Â· 74 Â· Male Â· B+</span></td>
       <td class="small">Arthritis, Mild dementia<br><span class="muted">Allergy: Dust</span></td>
       <td class="mono">MH31AB1110<br><span class="muted">Maruti Ertiga, Silver</span></td>
