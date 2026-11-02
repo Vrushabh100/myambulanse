@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import { isAdminUnlocked, lockAdmin } from "../adminGate.js";
 
 const API_BASE = (import.meta.env.VITE_API_BASE || "").replace(/\/+$/, "");
 const MOBILE_RE = /^[6-9]\d{9}$/;
 
 export default function AdminRecoveryPage() {
+  const navigate = useNavigate();
+  if (!isAdminUnlocked()) return <Navigate to="/servicesindia" replace />;
   const [key, setKey] = useState("");
   const [mobile, setMobile] = useState("");
   const [busy, setBusy] = useState(false);
@@ -39,6 +42,8 @@ export default function AdminRecoveryPage() {
 
   function clearAll() { setResult(null); setKey(""); setMobile(""); setSecondsLeft(0); setError(""); }
 
+  function lock() { lockAdmin(); navigate("/servicesindia", { replace: true }); }
+
   return (
     <div className="admin-wrap">
       <div className="card admin-card">
@@ -63,6 +68,7 @@ export default function AdminRecoveryPage() {
             <div className="admin-secret">{secondsLeft > 0 ? result.defaultMpin : "••••••"}</div>
             <div className="admin-hint">{secondsLeft > 0 ? `Hidden in ${secondsLeft}s` : "Hidden — look up again to view."}</div>
             <button type="button" className="btn ghost" onClick={clearAll}>Clear</button>
+            <button type="button" className="btn ghost" onClick={lock}>Lock</button>
           </div>
         )}
         <Link className="skip-link" to="/auth/login">Back to login</Link>

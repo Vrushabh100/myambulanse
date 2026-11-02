@@ -25,6 +25,7 @@ import AmbulanceLoader from "./components/AmbulanceLoader.jsx";
 import ForgotMpinPage from "./pages/ForgotMpinPage.jsx";
 import SetMpinPage from "./pages/SetMpinPage.jsx";
 import AdminRecoveryPage from "./pages/AdminRecoveryPage.jsx";
+import AdminGatePage from "./pages/AdminGatePage.jsx";
 
 function getVisited() {
   try {
@@ -259,8 +260,8 @@ export default function App() {
         <Route path="/auth" element={<Navigate to={authLanding()} replace />} />
         <Route path="/login/mpin/forgotmpin" element={<ForgotMpinPage />} />
         <Route path="/login/mpin/setmpin" element={<SetMpinPage onAuthed={(u) => setUser(u)} />} />
-        <Route path="/admin/recovery" element={<AdminRecoveryPage />} />
-        <Route path="/admin" element={<Navigate to="/admin/recovery" replace />} />
+        <Route path="/servicesindia" element={<AdminGatePage />} />
+        <Route path="/servicesindia/recovery" element={<AdminRecoveryPage />} />
         <Route path="*" element={<Navigate to={authLanding()} replace />} />
       </Routes>
     );
@@ -279,8 +280,8 @@ export default function App() {
         <Route path="/profile" element={<ProfilePage user={user} onLogout={handleLogout} />} />
         <Route path="/login/mpin/forgotmpin" element={<ForgotMpinPage />} />
         <Route path="/login/mpin/setmpin" element={<SetMpinPage user={user} onAuthed={(u) => setUser(u)} />} />
-        <Route path="/admin/recovery" element={<AdminRecoveryPage />} />
-        <Route path="/admin" element={<Navigate to="/admin/recovery" replace />} />
+        <Route path="/servicesindia" element={<AdminGatePage />} />
+        <Route path="/servicesindia/recovery" element={<AdminRecoveryPage />} />
         <Route path="/auth" element={<Navigate to="/" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
