@@ -18,6 +18,7 @@ export function publicUser(u) {
     role: u.role,
     address: u.address,
     doctorProfile: u.doctorProfile,
+    personalDoctor: u.personalDoctor || { name: "", degree: "", specialization: "", mobile: "", doctorId: null },
     emergencyContacts: u.emergencyContacts || [],
     needsSecuritySetup: !!u.needsSecuritySetup
   };

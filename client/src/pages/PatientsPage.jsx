@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { api } from "../api.js";
 import { doctorLabel } from "../format.js";
@@ -21,6 +22,7 @@ const EMPTY = {
 const EMPTY_CONTACT = { name: "", mobile: "", relation: "" };
 
 export default function PatientsPage() {
+  const navigate = useNavigate();
   const [patients, setPatients] = useState([]);
   const [tab, setTab] = useState("track");
   const [form, setForm] = useState(EMPTY);
@@ -189,6 +191,9 @@ export default function PatientsPage() {
 
   return (
     <div>
+      <button type="button" className="btn ghost small-btn back-btn" onClick={() => navigate("/")}>
+        ← Back to Dashboard
+      </button>
       <div className="eyebrow">My Patients</div>
       <div className="seg wide-seg">
         <button className={tab === "track" ? "seg-btn active" : "seg-btn"} onClick={() => setTab("track")}>

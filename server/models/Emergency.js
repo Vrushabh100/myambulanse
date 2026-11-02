@@ -18,6 +18,9 @@ const emergencySchema = new mongoose.Schema(
       ref: "Vehicle",
       default: null
     },
+    targetDoctorIds: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "User" }
+    ],
     emergencyType: { type: String, required: true },
     patientSnapshot: {
       name: { type: String, default: "" },

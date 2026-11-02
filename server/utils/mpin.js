@@ -6,16 +6,16 @@ const scrypt = promisify(crypto.scrypt);
 export const CUSTOMER_CARE = "+91 8007470450";
 
 export const SECURITY_QUESTIONS = [
-  "What is your best friend's name?",
-  "What is your mother's maiden name?",
-  "What was the name of your first school?",
-  "What is your birth date? (DDMMYYYY)",
-  "What is your favourite food?",
-  "What is your pet's name?",
-  "What is your favourite colour?",
-  "What city were you born in?",
-  "What is your favourite movie?",
-  "What is your father's middle name?"
+  "What was the model of your first phone?",
+  "What was the nickname only your family used for you?",
+  "What is the name of the street you lived on as a child?",
+  "What was the name of your first childhood pet?",
+  "What make and model was your first car or bike?",
+  "What is the first and last name of a childhood friend your family still remembers?",
+  "What was the name of your first employer or workplace?",
+  "What is the title of a movie you could rewatch endlessly?",
+  "What is the exact name of the hospital or clinic where you were born?",
+  "What was your favourite dish cooked by a grandparent? (dish name)"
 ];
 
 export const MPIN_LENGTH = 6;

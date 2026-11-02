@@ -11,6 +11,13 @@ const userSchema = new mongoose.Schema(
       specialization: { type: String, default: "" },
       clinicAddress: { type: String, default: "" }
     },
+    personalDoctor: {
+      name: { type: String, default: "" },
+      degree: { type: String, default: "" },
+      specialization: { type: String, default: "" },
+      mobile: { type: String, default: "" },
+      doctorId: { type: mongoose.Schema.Types.ObjectId, default: null }
+    },
     emergencyContacts: [{ name: String, mobile: String, relation: String }],
     knownIps: [{ type: String }],
     lastLoginAt: { type: Date },

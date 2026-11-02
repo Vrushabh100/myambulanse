@@ -134,8 +134,12 @@ function Shell({ user, onLogout, children }) {
 }
 
 function ProfilePage({ user, onLogout }) {
+  const navigate = useNavigate();
   return (
     <>
+      <button type="button" className="btn ghost small-btn back-btn" onClick={() => navigate("/")}>
+        ← Back to Dashboard
+      </button>
       <div className="eyebrow">Account</div>
       <div className="card">
         <h2>Profile</h2>

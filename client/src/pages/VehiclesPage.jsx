@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { api } from "../api.js";
 
@@ -11,6 +12,7 @@ const EMPTY = {
 };
 
 export default function VehiclesPage({ user }) {
+  const navigate = useNavigate();
   const [vehicles, setVehicles] = useState([]);
   const [patients, setPatients] = useState([]);
   const [tab, setTab] = useState("track");
@@ -92,6 +94,9 @@ export default function VehiclesPage({ user }) {
 
   return (
     <div>
+      <button type="button" className="btn ghost small-btn back-btn" onClick={() => navigate("/")}>
+        ← Back to Dashboard
+      </button>
       <div className="eyebrow">Emergency Vehicles</div>
       <div className="seg wide-seg">
         <button className={tab === "track" ? "seg-btn active" : "seg-btn"} onClick={() => setTab("track")}>

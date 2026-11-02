@@ -12,6 +12,40 @@ router.use(authMiddleware);
 const CLOSED_STATUSES = ["resolved", "cancelled"];
 const REFERABLE_STATUSES = ["active", "acknowledged", "referred"];
 
+const EMERGENCY_SPECIALTY = {
+  "Heart attack / Chest pain": ["Cardiology"],
+  "Breathing difficulty": ["Pulmonology", "Cardiology", "General"],
+  "Stroke symptoms": ["Neurology"],
+  "Severe bleeding / Accident": ["Trauma Surgery", "Orthopedics", "General"],
+  "Snake bite / Poisoning": ["General", "Trauma Surgery"],
+  "Fracture / Serious injury": ["Orthopedics", "Trauma Surgery"],
+  "Pregnancy complication": ["Gynecology", "Obstetrics", "General"],
+  "High fever + unconscious": ["General", "Medicine"],
+  "General emergency": []
+};
+
+async function resolveTargetDoctorIds(personalDoctor, emergencyType) {
+  // 1) explicit family doctor
+  const pd = personalDoctor || {};
+  let familyId = pd.doctorId || null;
+  if (!familyId && pd.mobile) {
+    const doc = await User.findOne({ role: "doctor", mobile: String(pd.mobile).trim() }).select("_id");
+    if (doc) familyId = doc._id;
+  }
+  if (familyId) return [familyId];
+
+  // 2) route by emergency type -> specialization
+  const specs = EMERGENCY_SPECIALTY[emergencyType] || [];
+  if (specs.length) {
+    const matches = await User.find({ role: "doctor", "doctorProfile.specialization": { $in: specs } }).select("_id");
+    if (matches.length) return matches.map((d) => d._id);
+  }
+
+  // 3) fallback: every doctor
+  const all = await User.find({ role: "doctor" }).select("_id");
+  return all.map((d) => d._id);
+}
+
 router.param("id", (req, res, next, val) => {
   if (!mongoose.Types.ObjectId.isValid(val)) {
     return res.status(404).json({ error: "Emergency not found" });
@@ -28,15 +62,12 @@ function requireDoctor(req, res, next) {
 
 // A doctor may act on an emergency only if it matches their visibility rules.
 function doctorCanSee(e, user) {
-  const pd = e.patientSnapshot?.personalDoctor || {};
-  const owner = String(e.userId) === String(user.id);
-  if (owner) return true;
+  if (String(e.userId) === String(user.id)) return true;
   if (user.role !== "doctor") return false;
   const ref = e.referral || {};
+  const targets = (e.targetDoctorIds || []).map(String);
   return (
-    pd.doctorId == null ||
-    String(pd.doctorId) === String(user.id) ||
-    (pd.mobile && user.mobile && String(pd.mobile) === String(user.mobile)) ||
+    targets.includes(String(user.id)) ||
     (ref.toDoctorId && String(ref.toDoctorId) === String(user.id)) ||
     (ref.byDoctorId && String(ref.byDoctorId) === String(user.id))
   );
@@ -50,21 +81,16 @@ async function loadActableEmergency(req) {
 }
 
 // Reusable SOS visibility filter for doctor-role listings. A doctor sees an
-// emergency iff ANY of: the patient has no linked family doctor (legacy
-// broadcast), the family doctor is them (personalDoctor.doctorId), the picked
-// doctor's mobile matches (legacy pick without doctorId), or they are on the
-// referral (referring or receiving).
+// emergency only if they are explicitly targeted (targetDoctorIds), or they are
+// on the referral (referring or receiving) for it.
 function doctorVisibilityFilter(user) {
-  const conditions = [
-    { "patientSnapshot.personalDoctor.doctorId": null },
-    { "patientSnapshot.personalDoctor.doctorId": user.id },
-    { "referral.toDoctorId": user.id },
-    { "referral.byDoctorId": user.id }
-  ];
-  if (user.mobile) {
-    conditions.push({ "patientSnapshot.personalDoctor.mobile": user.mobile });
-  }
-  return { $or: conditions };
+  return {
+    $or: [
+      { targetDoctorIds: user.id },
+      { "referral.toDoctorId": user.id },
+      { "referral.byDoctorId": user.id }
+    ]
+  };
 }
 
 router.post("/sos", async (req, res) => {
@@ -79,8 +105,9 @@ router.post("/sos", async (req, res) => {
       vehicle = await Vehicle.findOne({ _id: vehicleId, ownerId: req.user.id });
     }
     let meUser = req.user;
-    if (!patient && !Array.isArray(meUser.emergencyContacts)) {
-      meUser = (await User.findById(req.user.id)) || meUser;
+    if (!patient) {
+      meUser =
+        (await User.findById(req.user.id).select("name mobile emergencyContacts personalDoctor")) || req.user;
     }
     const snapshot = patient
       ? {
@@ -107,11 +134,11 @@ router.post("/sos", async (req, res) => {
           }))
         }
       : {
-          name: req.user.name,
-          mobile: req.user.mobile,
+          name: meUser.name || req.user.name,
+          mobile: meUser.mobile || req.user.mobile,
           diseases: [],
           allergies: [],
-          personalDoctor: {},
+          personalDoctor: meUser.personalDoctor || {},
           emergencyContacts: (meUser.emergencyContacts || []).map((c) => ({
             name: c.name,
             mobile: c.mobile,
@@ -120,10 +147,16 @@ router.post("/sos", async (req, res) => {
           healthTracker: []
         };
 
+    const targetDoctorIds = await resolveTargetDoctorIds(
+      patient ? patient.personalDoctor : (meUser.personalDoctor || {}),
+      emergencyType || patient?.defaultEmergency || "General emergency"
+    );
+
     const emergency = await Emergency.create({
       userId: req.user.id,
       patientId: patient ? patient._id : null,
       vehicleId: vehicle ? vehicle._id : null,
+      targetDoctorIds,
       emergencyType: emergencyType || patient?.defaultEmergency || "General emergency",
       patientSnapshot: snapshot,
       location: {

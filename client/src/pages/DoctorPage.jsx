@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "../api.js";
 
 function useRingtone(active) {
@@ -53,11 +54,14 @@ function useRingtone(active) {
 }
 
 function shouldRing(e, myId) {
+  const me = String(myId || "");
   if (e.status === "active") {
-    return !e.referral || String(e.referral.toDoctorId) === String(myId);
+    const targeted = Array.isArray(e.targetDoctorIds) && e.targetDoctorIds.map(String).includes(me);
+    const referred = e.referral && String(e.referral.toDoctorId) === me;
+    return targeted || referred;
   }
   if (e.status === "referred") {
-    return String(e.referral?.toDoctorId) === String(myId);
+    return String(e.referral?.toDoctorId) === me;
   }
   return false;
 }
@@ -70,6 +74,7 @@ function statusBadge(status) {
 }
 
 export default function DoctorPage({ user }) {
+  const navigate = useNavigate();
   const myId = user?.id;
   const [emergencies, setEmergencies] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -83,6 +88,7 @@ export default function DoctorPage({ user }) {
   const [referTarget, setReferTarget] = useState("");
   const [referNote, setReferNote] = useState("");
   const [referErr, setReferErr] = useState("");
+  const [referSearch, setReferSearch] = useState("");
 
   const aliveRef = useRef(true);
   const [busy, setBusy] = useState(false);
@@ -169,6 +175,7 @@ export default function DoctorPage({ user }) {
     setReferTarget("");
     setReferNote("");
     setReferErr("");
+    setReferSearch("");
     if (doctors) return;
     setDoctorsLoading(true);
     api("/doctors")
@@ -193,6 +200,7 @@ export default function DoctorPage({ user }) {
       setReferFor(null);
       setReferTarget("");
       setReferNote("");
+      setReferSearch("");
       showFlash(id, target ? `Referred to Dr ${target.name}` : "Referred");
       load();
     } catch (e) {
@@ -225,8 +233,22 @@ export default function DoctorPage({ user }) {
     return (doctors || []).filter((d) => String(d.id) !== String(myId));
   }
 
+  function filteredReferDoctors() {
+    const q = referSearch.trim().toLowerCase();
+    const list = otherDoctors();
+    if (!q) return list;
+    return list.filter((d) =>
+      [d.name, d.specialization, d.mobile, d.degree]
+        .filter(Boolean)
+        .some((v) => String(v).toLowerCase().includes(q))
+    );
+  }
+
   return (
     <div>
+      <button type="button" className="btn ghost small-btn back-btn" onClick={() => navigate("/")}>
+        ← Back to Dashboard
+      </button>
       <div className="eyebrow">Doctor</div>
       <h2 style={{ marginTop: 0 }}>
         Emergency Console {user?.role === "doctor" ? "" : "(demo view for patients)"}
@@ -545,14 +567,25 @@ export default function DoctorPage({ user }) {
                   {referFor && referFor === sel._id && (
                     <div className="refer-panel">
                       <b>Refer this emergency to another doctor</b>
+                      <input
+                        type="text"
+                        className="refer-search"
+                        placeholder="Search doctor by name / specialization"
+                        value={referSearch}
+                        onChange={(e) => setReferSearch(e.target.value)}
+                        autoFocus
+                      />
                       {referErr && <div className="error">{referErr}</div>}
                       {doctorsLoading && <p className="hint">Loading doctors…</p>}
                       {!doctorsLoading && doctors && otherDoctors().length === 0 && (
                         <p className="hint">No other doctors registered yet.</p>
                       )}
+                      {!doctorsLoading && doctors && otherDoctors().length > 0 && filteredReferDoctors().length === 0 && (
+                        <p className="hint">No doctors match your search.</p>
+                      )}
                       {!doctorsLoading &&
                         doctors &&
-                        otherDoctors().map((d) => (
+                        filteredReferDoctors().map((d) => (
                           <button
                             key={d.id}
                             type="button"
@@ -594,6 +627,7 @@ export default function DoctorPage({ user }) {
                           onClick={() => {
                             setReferFor(null);
                             setReferErr("");
+                            setReferSearch("");
                           }}
                         >
                           Close

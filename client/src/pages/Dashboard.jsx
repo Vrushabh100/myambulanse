@@ -132,6 +132,7 @@ export default function Dashboard({ user }) {
   const [docList, setDocList] = useState(null);
   const [docBusy, setDocBusy] = useState(false);
   const [docErr, setDocErr] = useState("");
+  const [selfDoctor, setSelfDoctor] = useState(user?.personalDoctor || null);
 
   const docQuery = docSearch.trim().toLowerCase();
   const docFiltered = (docList || []).filter((d) => {
@@ -158,17 +159,19 @@ export default function Dashboard({ user }) {
   async function selectDoctor(doc) {
     if (docBusy) return;
     setDocErr("");
-    if (!patientId) {
-      setDocErr("Family doctor is saved per family member — pick a person in “Who” first, or add a member in My Patients.");
-      return;
-    }
     setDocBusy(true);
     try {
       const personalDoctor = doc
         ? { name: doc.name, degree: doc.degree || "", specialization: doc.specialization || "", mobile: doc.mobile || "", doctorId: doc.id }
         : { name: "", degree: "", specialization: "", mobile: "", doctorId: null };
-      const updated = await api(`/patients/${patientId}`, { method: "PUT", body: { personalDoctor } });
-      setPatients((list) => list.map((p) => (p._id === updated._id ? updated : p)));
+      if (!patientId) {
+        // "Me" — save the owner's own family doctor
+        const res = await api("/auth/me/doctor", { method: "PUT", body: { personalDoctor } });
+        setSelfDoctor(res?.personalDoctor || personalDoctor);
+      } else {
+        const updated = await api(`/patients/${patientId}`, { method: "PUT", body: { personalDoctor } });
+        setPatients((list) => list.map((p) => (p._id === updated._id ? updated : p)));
+      }
       setDocPickerOpen(false);
       setDocSearch("");
     } catch (e) {
@@ -186,6 +189,10 @@ export default function Dashboard({ user }) {
     api("/emergencies/active").then((list) => setActive(list[0] || null)).catch(() => {});
     loadHistory();
   }, []);
+
+  useEffect(() => {
+    setSelfDoctor(user?.personalDoctor || null);
+  }, [user]);
 
   function loadHistory() {
     api("/emergencies").then(setEmergencies).catch(() => {});
@@ -274,7 +281,7 @@ export default function Dashboard({ user }) {
 
   const overlayOpen = !!active && !panelHidden;
   const selectedPatient = patients.find((p) => p._id === patientId);
-  const familyDoc = selectedPatient?.personalDoctor;
+  const familyDoc = selectedPatient?.personalDoctor || (patientId ? null : selfDoctor);
 
   function historyBadge(status) {
     if (status === "active") return "badge danger";
@@ -509,7 +516,13 @@ export default function Dashboard({ user }) {
                   {p.name} ({p.relation})
                 </button>
               ))}
+              <Link to="/patients" className="chip chip-add">+ Add member</Link>
             </div>
+            {patients.length === 0 && (
+              <span className="hint" style={{ marginTop: 6, display: "block" }}>
+                Only you so far. <Link to="/patients">Add a family member →</Link>
+              </span>
+            )}
           </div>
 
           <div className="hub-ctx-row">
@@ -601,7 +614,7 @@ export default function Dashboard({ user }) {
                         </button>
                       ))
                     )}
-                    {patientId && familyDoc && familyDoc.name ? (
+                    {familyDoc && familyDoc.name ? (
                       <button
                         type="button"
                         className="doc-row doc-row-clear"

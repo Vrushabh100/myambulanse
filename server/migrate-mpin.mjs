@@ -34,7 +34,7 @@ if (!process.env.VERCEL) {
   }
 }
 
-const SECURITY_QUESTION = "What is your best friend's name?";
+const SECURITY_QUESTION = "What was the model of your first phone?";
 
 // Known demo accounts may be seeded interactively, so they keep a predictable
 // personal MPIN ("123456"). The strength check is intentionally bypassed for

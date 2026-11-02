@@ -45,7 +45,7 @@ async function withRetry(fn, label, tries = RETRIES) {
     } catch (e) {
       lastErr = e;
       if (i < tries) {
-        console.warn(`  ! ${label}: attempt ${i} failed (${e.message}) — retrying`);
+        console.warn(`  ! ${label}: attempt ${i} failed (${e.message}) â€” retrying`);
         await sleep(400 * i);
       }
     }
@@ -88,7 +88,7 @@ const USERS = [
       tracker: [
         { note: "Morning walk done, BP normal", bp: "128/84", heartRate: "78" },
         { note: "Chest tightness episode for 2 min, took prescribed tablet", bp: "142/90", heartRate: "96", sugar: "168" },
-        { note: "Routine checkup — reports attached with family", bp: "130/86", weight: "72kg" }
+        { note: "Routine checkup â€” reports attached with family", bp: "130/86", weight: "72kg" }
       ]
     },
     car: { registrationNo: "MH31AB1101", vehicleModel: "Maruti Swift", color: "White", deviceA: "TSTA01", deviceB: "TSTB01" },
@@ -108,7 +108,7 @@ const USERS = [
       ],
       tracker: [
         { note: "Inhaler used twice in the evening, breathing settled", bp: "132/86", heartRate: "88" },
-        { note: "Neighbour smoking near building — wheezing started, used inhaler", heartRate: "102", bp: "138/88" },
+        { note: "Neighbour smoking near building â€” wheezing started, used inhaler", heartRate: "102", bp: "138/88" },
         { note: "Pulmonology follow-up done, peak flow improved", weight: "78kg", bp: "128/82" }
       ]
     },
@@ -131,7 +131,7 @@ const USERS = [
       tracker: [
         { note: "Thyroid tablet taken empty stomach", weight: "64kg" },
         { note: "Knee pain increased after stair climbing", weight: "64kg", bp: "124/80" },
-        { note: "Endocrine review — TSH under control", bp: "126/80", weight: "63kg" }
+        { note: "Endocrine review â€” TSH under control", bp: "126/80", weight: "63kg" }
       ]
     },
     car: { registrationNo: "MH31AB1103", vehicleModel: "Tata Nexon", color: "Blue", deviceA: "TSTA03", deviceB: "TSTB03" },
@@ -149,7 +149,7 @@ const USERS = [
       ],
       tracker: [
         { note: "Migraine mild, screen break helped", heartRate: "84" },
-        { note: "Attack at work — dark room + prescribed tablet, recovered in 1 hr", heartRate: "98", bp: "118/76" },
+        { note: "Attack at work â€” dark room + prescribed tablet, recovered in 1 hr", heartRate: "98", bp: "118/76" },
         { note: "Regular sleep this week, no episodes", weight: "58kg" }
       ]
     },
@@ -170,7 +170,7 @@ const USERS = [
       tracker: [
         { note: "Sugar checked twice, both values inside range", sugar: "142" },
         { note: "Slight breathlessness after evening walk, rested 20 min", bp: "148/92", heartRate: "88", sugar: "176" },
-        { note: "Cardiology review — valve function stable on echo", bp: "134/84", heartRate: "76" }
+        { note: "Cardiology review â€” valve function stable on echo", bp: "134/84", heartRate: "76" }
       ]
     },
     car: { registrationNo: "MH31AB1105", vehicleModel: "Mahindra Scorpio", color: "Black", deviceA: "TSTA05", deviceB: "TSTB05" },
@@ -210,7 +210,7 @@ const USERS = [
       tracker: [
         { note: "Kick movements normal, BP ok", bp: "112/70", weight: "62kg" },
         { note: "Mild swelling in feet, doctor advised salt control", bp: "118/74", weight: "63kg" },
-        { note: "Anomaly scan clear — baby healthy", weight: "63kg", heartRate: "86" }
+        { note: "Anomaly scan clear â€” baby healthy", weight: "63kg", heartRate: "86" }
       ]
     },
     car: { registrationNo: "MH31AB1107", vehicleModel: "Kia Sonet", color: "Orange", deviceA: "TSTA07", deviceB: "TSTB07" },
@@ -232,7 +232,7 @@ const USERS = [
       tracker: [
         { note: "Breathing ok at rest, used spacer with inhaler", heartRate: "80" },
         { note: "Cough increased at night, nebulized once", heartRate: "96", bp: "138/88" },
-        { note: "Chest physician review — oxygen saturation fine", weight: "66kg", bp: "128/80" }
+        { note: "Chest physician review â€” oxygen saturation fine", weight: "66kg", bp: "128/80" }
       ]
     },
     car: { registrationNo: "MH31AB1108", vehicleModel: "Toyota Innova", color: "Grey", deviceA: "TSTA08", deviceB: "TSTB08" },
@@ -250,8 +250,8 @@ const USERS = [
       ],
       tracker: [
         { note: "Played cricket 1 hr, no wheeze", heartRate: "92" },
-        { note: "Dusty ground → mild cough, inhaler before sleep", heartRate: "98" },
-        { note: "Pediatric review — growth on track", weight: "26kg" }
+        { note: "Dusty ground â†’ mild cough, inhaler before sleep", heartRate: "98" },
+        { note: "Pediatric review â€” growth on track", weight: "26kg" }
       ]
     },
     car: { registrationNo: "MH31AB1109", vehicleModel: "Hyundai i10", color: "White", deviceA: "TSTA09", deviceB: "TSTB09" },
@@ -272,7 +272,7 @@ const USERS = [
       tracker: [
         { note: "Morning stiffness 30 min, knee pain while walking", weight: "70kg" },
         { note: "Forgot evening tablet, daughter reminded", bp: "144/88" },
-        { note: "Neuro review — dementia stable, continue medication", bp: "136/84", weight: "69kg" }
+        { note: "Neuro review â€” dementia stable, continue medication", bp: "136/84", weight: "69kg" }
       ]
     },
     car: { registrationNo: "MH31AB1110", vehicleModel: "Maruti Ertiga", color: "Silver", deviceA: "TSTA10", deviceB: "TSTB10" },
@@ -306,7 +306,7 @@ async function ensureIdentity({ mobile, name, role, address, doctorProfile }) {
         address,
         doctorProfile,
         mpin: "246813",
-        securityQuestion: "What is your best friend's name?",
+        securityQuestion: "What was the model of your first phone?",
         answer: "myambulance"
       }
     }),
@@ -359,14 +359,14 @@ const summary = {
 function noteError(scope, err) {
   const msg = err?.message || String(err);
   summary.errors.push({ scope, error: msg });
-  console.error(`  ✗ [${scope}] ${msg}`);
+  console.error(`  âœ— [${scope}] ${msg}`);
 }
 
 async function main() {
   console.log("=== MyAmbulance test-data seed ===");
   const health = await req("/health").catch(() => null);
   if (!health?.ok) {
-    console.error("Backend not reachable at " + API + " — start the server first.");
+    console.error("Backend not reachable at " + API + " â€” start the server first.");
     process.exit(1);
   }
 
@@ -399,7 +399,7 @@ async function main() {
   const referrerToken = doctorTokens[REFERRAL_FROM_DOCTOR.mobile];
   const refereeToken = doctorTokens[REFERRAL_TO_DOCTOR.mobile];
   if (!referrerToken || !refereeToken) {
-    throw new Error("Referral demo needs Dr. Aarav Sharma and Dr. Kabir Nair tokens — doctor login failed");
+    throw new Error("Referral demo needs Dr. Aarav Sharma and Dr. Kabir Nair tokens â€” doctor login failed");
   }
   const refereeId = doctorIdsByMobile[REFERRAL_TO_DOCTOR.mobile];
   if (!refereeId) throw new Error("Could not resolve Dr. Kabir Nair user id for referral");
@@ -417,7 +417,7 @@ async function main() {
         address: u.address
       });
       created ? summary.users.created++ : summary.users.existing++;
-      console.log(`  ${created ? "+" : "="} user ${u.name} (${u.mobile}) — ${u.address}`);
+      console.log(`  ${created ? "+" : "="} user ${u.name} (${u.mobile}) â€” ${u.address}`);
 
       const rec = { user, token, data: u, patient: null, vehicle: null };
 
@@ -469,7 +469,7 @@ async function main() {
       const have = Array.isArray(patient.healthTracker) ? patient.healthTracker.length : 0;
       if (have >= 3) {
         summary.trackerEntries.alreadyPresent += 3;
-        console.log(`    = tracker already has ${have} entries — skipping`);
+        console.log(`    = tracker already has ${have} entries â€” skipping`);
       } else {
         const missing = u.patient.tracker.slice(have);
         for (const body of missing) {
@@ -603,7 +603,7 @@ async function main() {
         );
         if (!res.ok) throw new Error(`resolve failed: ${res.status} ${res.data?.error || ""}`);
         em = res.data;
-        console.log(`    ✓ emergency ${em._id} resolved by ${doctorName}`);
+        console.log(`    âœ“ emergency ${em._id} resolved by ${doctorName}`);
       }
 
       summary.resolvedEmergencies.push({
@@ -666,7 +666,7 @@ async function main() {
       );
       if (!refer.ok) throw new Error(`refer failed: ${refer.status} ${refer.data?.error || ""}`);
       em = refer.data;
-      console.log(`    ✓ emergency ${em._id} referred: Dr. ${REFERRAL_FROM_DOCTOR.name} → Dr. ${REFERRAL_TO_DOCTOR.name} ("${REFERRAL_NOTE}")`);
+      console.log(`    âœ“ emergency ${em._id} referred: Dr. ${REFERRAL_FROM_DOCTOR.name} â†’ Dr. ${REFERRAL_TO_DOCTOR.name} ("${REFERRAL_NOTE}")`);
     }
 
     summary.referralEmergency = {
@@ -699,7 +699,7 @@ async function main() {
   console.log(`open referral        : ${summary.referralEmergency ? 1 : 0}`);
   if (summary.referralEmergency) {
     const r = summary.referralEmergency;
-    console.log(`   - ${r.emergencyId}  ${r.patient}  ${r.referredFrom} → ${r.referredTo}  note "${r.note}"  [left OPEN as "${r.status}" on purpose]`);
+    console.log(`   - ${r.emergencyId}  ${r.patient}  ${r.referredFrom} â†’ ${r.referredTo}  note "${r.note}"  [left OPEN as "${r.status}" on purpose]`);
   }
   console.log(`errors                : ${summary.errors.length}`);
   for (const e of summary.errors) console.log(`   ! [${e.scope}] ${e.error}`);
