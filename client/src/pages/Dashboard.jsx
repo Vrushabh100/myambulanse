@@ -70,15 +70,25 @@ function DevicePanel({ state }) {
   );
 }
 
-function getLocation() {
+function getPosition(options) {
   return new Promise((resolve) => {
     if (!navigator.geolocation) return resolve(null);
     navigator.geolocation.getCurrentPosition(
       (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy }),
       () => resolve(null),
-      { enableHighAccuracy: true, timeout: 8000 }
+      options
     );
   });
+}
+
+// Robust location capture: try a precise GPS fix first, then fall back to a fast
+// network/Wi-Fi fix. On a cold start GPS often times out, so this fallback is
+// what makes sure an SOS actually carries a location.
+async function getLocation() {
+  const precise = await getPosition({ enableHighAccuracy: true, timeout: 6000, maximumAge: 0 });
+  if (precise) return precise;
+  const quick = await getPosition({ enableHighAccuracy: false, timeout: 6000, maximumAge: 60000 });
+  return quick;
 }
 
 function playSosSiren() {
@@ -185,8 +195,8 @@ export default function Dashboard({ user }) {
     setDocBusy(true);
     try {
       const personalDoctor = doc
-        ? { name: doc.name, degree: doc.degree || "", specialization: doc.specialization || "", mobile: doc.mobile || "", clinicAddress: doc.clinicAddress || "", doctorId: doc.id }
-        : { name: "", degree: "", specialization: "", mobile: "", doctorId: null };
+        ? { name: doc.name, degree: doc.degree || "", specialization: doc.specialization || "", mobile: doc.mobile || "", clinicAddress: doc.clinicAddress || "", clinicLat: doc.clinicLat ?? null, clinicLng: doc.clinicLng ?? null, doctorId: doc.id }
+        : { name: "", degree: "", specialization: "", mobile: "", clinicAddress: "", clinicLat: null, clinicLng: null, doctorId: null };
       if (!patientId) {
         // "Me" — save the owner's own family doctor
         const res = await api("/auth/me/doctor", { method: "PUT", body: { personalDoctor } });
@@ -394,6 +404,19 @@ export default function Dashboard({ user }) {
   const emgDoctorMobile = (active?.patientSnapshot?.personalDoctor?.mobile || "").trim();
   const emgFamilyContact = active?.patientSnapshot?.emergencyContacts?.[0] || null;
   const emgLoaderTitle = emgDoctorName ? `Calling ${emgDoctorName}` : "Connecting to doctor";
+
+  // Doctor clinic location shown during an SOS — prefer the emergency snapshot,
+  // then fall back to the live doctors list so it works even for older SOS records.
+  const emgClinicDoc = active?.patientSnapshot?.personalDoctor || null;
+  const emgClinicGeo = emgClinicDoc
+    ? (doctorGeo.byId?.[emgClinicDoc.doctorId] ||
+       doctorGeo.byMobile?.[emgClinicDoc.mobile] ||
+       (emgClinicDoc.clinicLat != null && emgClinicDoc.clinicLng != null ? { lat: emgClinicDoc.clinicLat, lng: emgClinicDoc.clinicLng } : null))
+    : null;
+  const emgClinicAddr = emgClinicDoc
+    ? (doctorClinic.byId?.[emgClinicDoc.doctorId] || doctorClinic.byMobile?.[emgClinicDoc.mobile] || emgClinicDoc.clinicAddress || "")
+    : "";
+  const emgClinicMaps = (emgClinicGeo || emgClinicAddr) ? mapsLink(emgClinicAddr, emgClinicGeo?.lat, emgClinicGeo?.lng) : null;
 
   const activeRef = useRef(null);
   activeRef.current = active;
@@ -828,18 +851,26 @@ export default function Dashboard({ user }) {
             <p style={{ color: "var(--red)", fontWeight: 800, margin: "0 0 8px" }}>
               {activeName} — {active.emergencyType}
             </p>
-            <p className="hint">
+            <p className="hint" style={{ margin: "0 0 4px" }}>
               {hasLocation ? (
                 <>
-                  📍 {active.location.lat.toFixed(5)}, {active.location.lng.toFixed(5)}{" "}
+                  <b>Patient location:</b> 📍 {active.location.lat.toFixed(5)}, {active.location.lng.toFixed(5)}{" "}
                   <a href={mapsUrl} target="_blank" rel="noreferrer">
                     Open in Google Maps
                   </a>
                 </>
               ) : (
-                "Location unavailable (GPS off)"
+                "Patient location: unavailable (GPS off)"
               )}
             </p>
+            {emgClinicMaps ? (
+              <p className="hint" style={{ margin: "0 0 8px" }}>
+                <b>{emgDoctorName ? emgDoctorName + " clinic" : "Doctor clinic"}:</b>{" "}
+                <a href={emgClinicMaps} target="_blank" rel="noreferrer">
+                  Open clinic location in Google Maps
+                </a>
+              </p>
+            ) : null}
 
             <div className="emg-actions">
               {emgDoctorName && emgDoctorMobile ? (
