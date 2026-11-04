@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import { isAdminUnlocked, lockAdmin } from "../adminGate.js";
+import { isAdminUnlocked, lockAdmin, getAdminKey } from "../adminGate.js";
 
 const API_BASE = (import.meta.env.VITE_API_BASE || "").replace(/\/+$/, "");
 const MOBILE_RE = /^[6-9]\d{9}$/;
 
 export default function AdminRecoveryPage() {
   const navigate = useNavigate();
-  if (!isAdminUnlocked()) return <Navigate to="/servicesindia" replace />;
-  const [key, setKey] = useState("");
+  if (!isAdminUnlocked()) return <Navigate to="/servicesindia/consoles" replace />;
+  const [key, setKey] = useState(getAdminKey() || "");
   const [mobile, setMobile] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -42,7 +42,7 @@ export default function AdminRecoveryPage() {
 
   function clearAll() { setResult(null); setKey(""); setMobile(""); setSecondsLeft(0); setError(""); }
 
-  function lock() { lockAdmin(); navigate("/servicesindia", { replace: true }); }
+  function lock() { lockAdmin(); navigate("/servicesindia/consoles", { replace: true }); }
 
   return (
     <div className="admin-wrap">
@@ -71,6 +71,7 @@ export default function AdminRecoveryPage() {
             <button type="button" className="btn ghost" onClick={lock}>Lock</button>
           </div>
         )}
+        <Link className="skip-link" to="/servicesindia/consoles/dashboard">← Admin dashboard</Link>
         <Link className="skip-link" to="/auth/login">Back to login</Link>
       </div>
     </div>

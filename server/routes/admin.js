@@ -6,6 +6,7 @@ import { clientIp } from "../utils/request.js";
 import { decryptDefaultMpin } from "../utils/mpin.js";
 import { checkLimit, RATE } from "../utils/rateLimit.js";
 import mongoose from "mongoose";
+import Emergency from "../models/Emergency.js";
 
 const router = express.Router();
 
@@ -216,4 +217,55 @@ router.post("/doctors/:id/warn", adminGuard, (req, res) => {
 router.post("/doctors/:id/unsuspend", adminGuard, (req, res) =>
   mutateDoctor(req, res, "unsuspend", { $set: { approvalStatus: "approved", suspendUntil: null, reviewedAt: new Date() } }, "unsuspend")
 );
+router.get("/stats", adminGuard, async (req, res) => {
+  try {
+    const [users, patients, docsTotal, docsApproved, docsPending, docsSuspended, docsBanned, docsDeclined, emgTotal, emgActive, emgResolved] = await Promise.all([
+      User.countDocuments({}),
+      User.countDocuments({ role: "patient" }),
+      User.countDocuments({ role: "doctor" }),
+      User.countDocuments({ role: "doctor", approvalStatus: "approved" }),
+      User.countDocuments({ role: "doctor", approvalStatus: "pending" }),
+      User.countDocuments({ role: "doctor", approvalStatus: "suspended" }),
+      User.countDocuments({ role: "doctor", approvalStatus: "banned" }),
+      User.countDocuments({ role: "doctor", approvalStatus: "declined" }),
+      Emergency.countDocuments({}),
+      Emergency.countDocuments({ status: { $in: ["active", "acknowledged", "referred"] } }),
+      Emergency.countDocuments({ status: "resolved" })
+    ]);
+    await audit("", req, "list", req.adminKey);
+    res.setHeader("Cache-Control", "no-store");
+    res.json({
+      users,
+      patients,
+      doctors: { total: docsTotal, approved: docsApproved, pending: docsPending, suspended: docsSuspended, banned: docsBanned, declined: docsDeclined },
+      emergencies: { total: emgTotal, active: emgActive, resolved: emgResolved }
+    });
+  } catch (e) {
+    console.error("admin stats error:", e.message);
+    res.status(500).json({ error: "Something went wrong." });
+  }
+});
+router.get("/users", adminGuard, async (req, res) => {
+  try {
+    const role = String(req.query.role || "").trim();
+    const filter = {};
+    if (role === "doctor" || role === "patient") filter.role = role;
+    const list = await User.find(filter).sort({ createdAt: -1 }).limit(500);
+    await audit("", req, "list", req.adminKey);
+    res.setHeader("Cache-Control", "no-store");
+    res.json(list.map((u) => ({
+      id: u._id,
+      mobile: u.mobile,
+      name: u.name,
+      role: u.role,
+      approvalStatus: u.approvalStatus || "approved",
+      address: u.address || "",
+      createdAt: u.createdAt,
+      lastLoginAt: u.lastLoginAt || null
+    })));
+  } catch (e) {
+    console.error("admin users error:", e.message);
+    res.status(500).json({ error: "Something went wrong." });
+  }
+});
 export default router;

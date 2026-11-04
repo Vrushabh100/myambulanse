@@ -1,5 +1,6 @@
 export const GATE_HASH = "c1b6688bab7b5dcf0fe0993567abdf9cde312ce6083a21543426d22691f78240";
 const UNLOCK_KEY = "ma_admin_unlocked";
+const ADMIN_KEY = "ma_admin_key";
 
 export function isAdminUnlocked() {
   try { return sessionStorage.getItem(UNLOCK_KEY) === "1"; } catch { return false; }
@@ -8,7 +9,16 @@ export function unlockAdmin() {
   try { sessionStorage.setItem(UNLOCK_KEY, "1"); } catch { /* ignore */ }
 }
 export function lockAdmin() {
-  try { sessionStorage.removeItem(UNLOCK_KEY); } catch { /* ignore */ }
+  try {
+    sessionStorage.removeItem(UNLOCK_KEY);
+    sessionStorage.removeItem(ADMIN_KEY);
+  } catch { /* ignore */ }
+}
+export function setAdminKey(key) {
+  try { if (key) sessionStorage.setItem(ADMIN_KEY, key); } catch { /* ignore */ }
+}
+export function getAdminKey() {
+  try { return sessionStorage.getItem(ADMIN_KEY) || ""; } catch { return ""; }
 }
 export async function sha256Hex(str) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));

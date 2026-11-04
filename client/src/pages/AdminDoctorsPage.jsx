@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { isAdminUnlocked, lockAdmin } from "../adminGate.js";
+import { isAdminUnlocked, lockAdmin, getAdminKey } from "../adminGate.js";
 
 const API_BASE = (import.meta.env.VITE_API_BASE || "").replace(/\/+$/, "");
 
@@ -25,7 +25,7 @@ function statusBadge(s) {
 }
 
 export default function AdminDoctorsPage() {
-  const [key, setKey] = useState("");
+  const [key, setKey] = useState(getAdminKey() || "");
   const [tab, setTab] = useState("pending");
   const [pending, setPending] = useState(null);
   const [approved, setApproved] = useState(null);
@@ -34,7 +34,12 @@ export default function AdminDoctorsPage() {
   const [error, setError] = useState("");
   const [flash, setFlash] = useState("");
 
-  if (!isAdminUnlocked()) return <Navigate to="/servicesindia" replace />;
+  useEffect(() => {
+    if (isAdminUnlocked() && getAdminKey()) load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (!isAdminUnlocked()) return <Navigate to="/servicesindia/consoles" replace />;
 
   async function load() {
     if (!key.trim()) { setError("Enter the admin key."); return; }
@@ -178,8 +183,8 @@ export default function AdminDoctorsPage() {
         )}
 
         <div className="row-actions" style={{ marginTop: 12 }}>
-          <Link className="skip-link" to="/servicesindia/recovery">Owner recovery console</Link>
-          <button type="button" className="btn ghost small-btn" onClick={() => { lockAdmin(); window.location.href = "/servicesindia"; }}>Lock</button>
+          <Link className="skip-link" to="/servicesindia/consoles/dashboard">← Admin dashboard</Link>
+          <button type="button" className="btn ghost small-btn" onClick={() => { lockAdmin(); window.location.href = "/servicesindia/consoles"; }}>Lock</button>
         </div>
       </div>
     </div>
