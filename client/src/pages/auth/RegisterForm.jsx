@@ -7,7 +7,7 @@ import { MOBILE_RE, WEAK_MPIN_MESSAGE, weakMpin } from "../../mpinRules.js";
 
 export default function RegisterForm({ onLogin }) {
   const [role, setRole] = useState("patient");
-  const [form, setForm] = useState({ mobile: "", name: "", address: "", degree: "", specialization: "" });
+  const [form, setForm] = useState({ mobile: "", name: "", address: "", degree: "", specialization: "", clinicAddress: "" });
   const [contacts, setContacts] = useState([{ name: "", relation: "", mobile: "" }]);
   const [mpin, setMpin] = useState("");
   const [confirmMpin, setConfirmMpin] = useState("");
@@ -41,9 +41,13 @@ export default function RegisterForm({ onLogin }) {
     setBusy(true);
     try {
       const body = { mobile: form.mobile, name: form.name.trim(), role, address: form.address, mpin, securityQuestion: question, answer };
-      if (role === "doctor") body.doctorProfile = { degree: form.degree, specialization: form.specialization };
+      if (role === "doctor") body.doctorProfile = { degree: form.degree, specialization: form.specialization, clinicAddress: form.clinicAddress };
       else body.emergencyContacts = contacts.map((c) => ({ name: c.name.trim(), relation: c.relation.trim(), mobile: c.mobile.trim() })).filter((c) => c.name || c.mobile);
       const data = await api("/auth/register", { method: "POST", body });
+      if (data.pending === true || data.approvalStatus === "pending") {
+        navigate("/auth/register/approval", { replace: true });
+        return;
+      }
       setSession(data.token, data.user);
       saveMobile(form.mobile);
       if (data.deviceToken) saveDeviceToken(data.deviceToken);
@@ -66,7 +70,7 @@ export default function RegisterForm({ onLogin }) {
       {role === "patient" ? (
         <><label>Address</label><input value={form.address} onChange={set("address")} placeholder="Home address" /></>
       ) : (
-        <><label>Degree</label><input value={form.degree} onChange={set("degree")} placeholder="e.g. MBBS, MD" /><label>Specialization</label><input value={form.specialization} onChange={set("specialization")} placeholder="e.g. Cardiology" /></>
+        <><label>Degree</label><input value={form.degree} onChange={set("degree")} placeholder="e.g. MBBS, MD" /><label>Specialization</label><input value={form.specialization} onChange={set("specialization")} placeholder="e.g. Cardiology" /><label>Clinic / Hospital address</label><input value={form.clinicAddress} onChange={set("clinicAddress")} placeholder="Clinic / Hospital address" /></>
       )}
       <label>Mobile number</label>
       <input required inputMode="numeric" maxLength={10} value={form.mobile} onChange={(e) => setForm((f) => ({ ...f, mobile: e.target.value.replace(/\D/g, "") }))} placeholder="10-digit mobile" />

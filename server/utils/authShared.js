@@ -19,6 +19,10 @@ export function publicUser(u) {
     address: u.address,
     doctorProfile: u.doctorProfile,
     personalDoctor: u.personalDoctor || { name: "", degree: "", specialization: "", mobile: "", doctorId: null },
+    approvalStatus: u.approvalStatus || "approved",
+    approvalNote: u.approvalNote || "",
+    suspendUntil: u.suspendUntil || null,
+    warnings: u.warnings || [],
     emergencyContacts: u.emergencyContacts || [],
     needsSecuritySetup: !!u.needsSecuritySetup
   };

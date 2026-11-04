@@ -71,6 +71,7 @@ router.post("/register", async (req, res) => {
       name: name.trim(),
       role: finalRole,
       address: String(address || "").slice(0, 300),
+      approvalStatus: finalRole === "doctor" ? "pending" : "approved",
       doctorProfile: profile,
       emergencyContacts: savedContacts,
       knownIps: [clientIp(req)],
@@ -83,6 +84,14 @@ router.post("/register", async (req, res) => {
       securityQuestionUpdatedAt: new Date(),
       needsSecuritySetup: false
     });
+
+    if (finalRole === "doctor") {
+      return res.status(201).json({
+        pending: true,
+        approvalStatus: "pending",
+        user: publicUser(user)
+      });
+    }
 
     res.status(201).json({
       token: signSession(user),

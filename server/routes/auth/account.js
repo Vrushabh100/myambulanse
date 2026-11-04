@@ -59,6 +59,7 @@ router.put("/me/doctor", authMiddleware, async (req, res) => {
       degree: String(d.degree || "").slice(0, 40),
       specialization: String(d.specialization || "").slice(0, 60),
       mobile: String(d.mobile || "").replace(/\D/g, "").slice(0, 10),
+      clinicAddress: String(d.clinicAddress || "").slice(0, 200),
       doctorId: null
     };
     // Resolve doctorId from a registered doctor (by explicit id, else by mobile)
@@ -75,6 +76,29 @@ router.put("/me/doctor", authMiddleware, async (req, res) => {
     res.json({ user: publicUser(user), personalDoctor: user.personalDoctor });
   } catch (e) {
     console.error("set self doctor error:", e.message);
+    res.status(500).json({ error: "Something went wrong. Please try again." });
+  }
+});
+
+router.put("/me", authMiddleware, async (req, res) => {
+  try {
+    const { name, address, clinicAddress } = req.body || {};
+    const update = {};
+    if (name != null) {
+      const n = String(name).trim();
+      if (n.length < 2 || n.length > 80) return res.status(400).json({ error: "Name must be 2-80 characters" });
+      update.name = n;
+    }
+    if (address != null) update.address = String(address).slice(0, 200);
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(401).json({ error: "User not found" });
+    if (user.role === "doctor" && clinicAddress != null) {
+      update["doctorProfile.clinicAddress"] = String(clinicAddress).slice(0, 200);
+    }
+    const updated = await User.findByIdAndUpdate(req.user.id, { $set: update }, { new: true });
+    res.json({ user: publicUser(updated) });
+  } catch (e) {
+    console.error("update profile error:", e.message);
     res.status(500).json({ error: "Something went wrong. Please try again." });
   }
 });

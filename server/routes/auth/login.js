@@ -11,6 +11,21 @@ import {
 
 const router = express.Router();
 
+function accountGate(user) {
+  if (user.role !== "doctor") return null;
+  const status = user.approvalStatus || "approved";
+  if (status === "pending") return { code: "PENDING", status: 403, message: "Your doctor account is under review. You will be able to log in once the administration approves it." };
+  if (status === "declined") return { code: "DECLINED", status: 403, message: "Your doctor registration was declined. Please contact customer care +91 8007470450." };
+  if (status === "banned") return { code: "BANNED", status: 403, message: "This account has been banned. Please contact customer care +91 8007470450." };
+  if (status === "suspended") {
+    if (user.suspendUntil && new Date(user.suspendUntil).getTime() > Date.now()) {
+      return { code: "SUSPENDED", status: 403, message: `This account is suspended until ${new Date(user.suspendUntil).toLocaleString()}. Please contact customer care +91 8007470450.` };
+    }
+    return { code: "SUSPENSION_EXPIRED", status: 200 };
+  }
+  return null;
+}
+
 router.post("/login", async (req, res) => {
   try {
     const { mobile, mpin } = req.body || {};
@@ -42,6 +57,14 @@ router.post("/login", async (req, res) => {
     if (!blocked && user.mpinHash) personalOk = await verifySecret(supplied, user.mpinHash);
     if (personalOk) {
       await User.updateOne({ _id: user._id }, { $set: { failedMpinAttempts: 0, failedAnswerAttempts: 0, lockUntil: null, mpinBlocked: false, answerBlocked: false, lastLoginAt: now } });
+      const gate = accountGate(user);
+      if (gate && gate.code === "SUSPENSION_EXPIRED") {
+        await User.updateOne({ _id: user._id }, { $set: { approvalStatus: "approved", suspendUntil: null } });
+        user.approvalStatus = "approved";
+        user.suspendUntil = null;
+      } else if (gate) {
+        return res.status(gate.status).json({ error: gate.message, code: gate.code });
+      }
       return res.json({ token: signSession(user), user: publicUser(user), deviceToken: await createDeviceToken(user._id, req), recovery: false });
     }
 
@@ -63,6 +86,14 @@ router.post("/login", async (req, res) => {
     }
     if (defaultOk) {
       await User.updateOne({ _id: user._id }, { $set: { failedMpinAttempts: 0, failedAnswerAttempts: 0, lockUntil: null, mpinBlocked: false, answerBlocked: false, lastLoginAt: now } });
+      const gate = accountGate(user);
+      if (gate && gate.code === "SUSPENSION_EXPIRED") {
+        await User.updateOne({ _id: user._id }, { $set: { approvalStatus: "approved", suspendUntil: null } });
+        user.approvalStatus = "approved";
+        user.suspendUntil = null;
+      } else if (gate) {
+        return res.status(gate.status).json({ error: gate.message, code: gate.code });
+      }
       return res.json({ token: signSession(user, { recovery: true }), user: publicUser(user), deviceToken: await createDeviceToken(user._id, req), recovery: true, mustChangeSecurity: true });
     }
 

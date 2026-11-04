@@ -37,12 +37,12 @@ async function resolveTargetDoctorIds(personalDoctor, emergencyType) {
   // 2) route by emergency type -> specialization
   const specs = EMERGENCY_SPECIALTY[emergencyType] || [];
   if (specs.length) {
-    const matches = await User.find({ role: "doctor", "doctorProfile.specialization": { $in: specs } }).select("_id");
+    const matches = await User.find({ role: "doctor", "doctorProfile.specialization": { $in: specs }, approvalStatus: { $nin: ["pending", "declined", "suspended", "banned"] } }).select("_id");
     if (matches.length) return matches.map((d) => d._id);
   }
 
   // 3) fallback: every doctor
-  const all = await User.find({ role: "doctor" }).select("_id");
+  const all = await User.find({ role: "doctor", approvalStatus: { $nin: ["pending", "declined", "suspended", "banned"] } }).select("_id");
   return all.map((d) => d._id);
 }
 

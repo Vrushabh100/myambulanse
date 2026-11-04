@@ -1001,3 +1001,15 @@ input::placeholder, textarea::placeholder { color: var(--label); }
   color: var(--muted);
   text-decoration: underline;
 }
+
+.back-btn-lg {
+  font-size: 15px;
+  padding: 8px 16px;
+  margin: 8px 0 16px;
+  display: inline-block;
+}
+.auth-seg { margin-bottom: 16px; }
+@media (max-width: 640px) {
+  .auth-seg { width: 100%; }
+}
+.linkish { background: none; border: none; padding: 0; color: inherit; font: inherit; cursor: pointer; text-align: left; }

@@ -26,6 +26,8 @@ import ForgotMpinPage from "./pages/ForgotMpinPage.jsx";
 import SetMpinPage from "./pages/SetMpinPage.jsx";
 import AdminRecoveryPage from "./pages/AdminRecoveryPage.jsx";
 import AdminGatePage from "./pages/AdminGatePage.jsx";
+import UnderReviewPage from "./pages/UnderReviewPage.jsx";
+import AdminDoctorsPage from "./pages/AdminDoctorsPage.jsx";
 
 function getVisited() {
   try {
@@ -133,56 +135,103 @@ function Shell({ user, onLogout, children }) {
   );
 }
 
-function ProfilePage({ user, onLogout }) {
+function ProfilePage({ user, onLogout, onUpdated }) {
   const navigate = useNavigate();
+  const isDoctor = user.role === "doctor";
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(user.name || "");
+  const [address, setAddress] = useState(user.address || "");
+  const [clinicAddress, setClinicAddress] = useState(user.doctorProfile?.clinicAddress || "");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [note, setNote] = useState("");
+
+  const CARE = <a className="cc-link" href="tel:+918007470450">+91 8007470450</a>;
+
+  async function save() {
+    setError("");
+    setBusy(true);
+    try {
+      const body = { name, address };
+      if (isDoctor) body.clinicAddress = clinicAddress;
+      const data = await api("/auth/me", { method: "PUT", body });
+      if (onUpdated && data && data.user) onUpdated(data.user);
+      setEditing(false);
+    } catch (e) {
+      setError(e.message || "Something went wrong.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <>
-      <button type="button" className="btn ghost small-btn back-btn" onClick={() => navigate("/")}>
-        ← Back to Dashboard
-      </button>
       <div className="eyebrow">Account</div>
+      <button type="button" className="btn ghost back-btn-lg" onClick={() => navigate("/")}>← Back</button>
       <div className="card">
         <h2>Profile</h2>
         <table className="kv">
           <tbody>
-            <tr>
-              <td>Name</td>
-              <td>{user.name}</td>
-            </tr>
-            <tr>
+            <tr><td>Name</td><td>{user.name}</td></tr>
+            <tr onClick={() => setNote("mobile")} style={{ cursor: "pointer" }}>
               <td>Mobile</td>
-              <td>{user.mobile}</td>
+              <td>{user.mobile} <span className="muted small">(tap to update)</span></td>
             </tr>
-            <tr>
-              <td>Role</td>
-              <td style={{ textTransform: "capitalize" }}>{user.role}</td>
-            </tr>
-            <tr>
-              <td>Address</td>
-              <td>{user.address || "—"}</td>
-            </tr>
-            {user.role === "doctor" && (
+            <tr><td>Role</td><td style={{ textTransform: "capitalize" }}>{user.role}</td></tr>
+            <tr><td>Address</td><td>{user.address || "—"}</td></tr>
+            {isDoctor && (
               <>
-                <tr>
+                <tr onClick={() => setNote("doctor")} style={{ cursor: "pointer" }}>
                   <td>Degree</td>
-                  <td>{user.doctorProfile?.degree || "—"}</td>
+                  <td>{user.doctorProfile?.degree || "—"} <span className="muted small">(tap to update)</span></td>
                 </tr>
-                <tr>
+                <tr onClick={() => setNote("doctor")} style={{ cursor: "pointer" }}>
                   <td>Specialization</td>
-                  <td>{user.doctorProfile?.specialization || "—"}</td>
+                  <td>{user.doctorProfile?.specialization || "—"} <span className="muted small">(tap to update)</span></td>
                 </tr>
+                <tr><td>Clinic address</td><td>{user.doctorProfile?.clinicAddress || "—"}</td></tr>
               </>
             )}
           </tbody>
         </table>
+
+        {note === "mobile" && (
+          <div className="notice warn">To update your mobile number, please contact customer care {CARE}.</div>
+        )}
+        {note === "doctor" && (
+          <div className="notice warn">To update your mobile, degree, or specialization, please contact administration / customer care {CARE}.</div>
+        )}
+
+        {editing ? (
+          <div>
+            <label>Name</label>
+            <input value={name} onChange={(e) => setName(e.target.value)} maxLength={80} />
+            <label>Address</label>
+            <input value={address} onChange={(e) => setAddress(e.target.value)} maxLength={200} placeholder="Home address" />
+            {isDoctor && (
+              <>
+                <label>Clinic / Hospital address</label>
+                <input value={clinicAddress} onChange={(e) => setClinicAddress(e.target.value)} maxLength={200} placeholder="Clinic / hospital address (used for Google Maps)" />
+              </>
+            )}
+            {error && <div className="error">{error}</div>}
+            <div className="row-actions">
+              <button className="btn primary" disabled={busy} onClick={save}>{busy ? "Saving..." : "Save changes"}</button>
+              <button className="btn ghost" disabled={busy} onClick={() => { setEditing(false); setError(""); setName(user.name || ""); setAddress(user.address || ""); setClinicAddress(user.doctorProfile?.clinicAddress || ""); }}>Cancel</button>
+            </div>
+          </div>
+        ) : (
+          <div className="row-actions">
+            <button className="btn primary" onClick={() => { setEditing(true); setNote(""); }}>Update Profile</button>
+          </div>
+        )}
+
         <div className="info-ok">
           <span>✅</span>
           <span>Auto-login active on this device — this device stays signed in until you log out.</span>
         </div>
         <div className="row-actions">
-          <button className="btn danger" onClick={onLogout}>
-            Logout
-          </button>
+          <button className="btn danger" onClick={onLogout}>Logout</button>
         </div>
       </div>
     </>
@@ -266,6 +315,8 @@ export default function App() {
         <Route path="/login/mpin/setmpin" element={<SetMpinPage onAuthed={(u) => setUser(u)} />} />
         <Route path="/servicesindia" element={<AdminGatePage />} />
         <Route path="/servicesindia/recovery" element={<AdminRecoveryPage />} />
+        <Route path="/auth/register/approval" element={<UnderReviewPage />} />
+        <Route path="/servicesindia/doctors" element={<AdminDoctorsPage />} />
         <Route path="*" element={<Navigate to={authLanding()} replace />} />
       </Routes>
     );
@@ -281,11 +332,13 @@ export default function App() {
         <Route path="/patients" element={<PatientsPage user={user} />} />
         <Route path="/vehicles" element={<VehiclesPage user={user} />} />
         <Route path="/doctor" element={<DoctorPage user={user} />} />
-        <Route path="/profile" element={<ProfilePage user={user} onLogout={handleLogout} />} />
+        <Route path="/profile" element={<ProfilePage user={user} onLogout={handleLogout} onUpdated={(u) => { setSession(getToken(), u); setUser(u); }} />} />
         <Route path="/login/mpin/forgotmpin" element={<ForgotMpinPage />} />
         <Route path="/login/mpin/setmpin" element={<SetMpinPage user={user} onAuthed={(u) => setUser(u)} />} />
         <Route path="/servicesindia" element={<AdminGatePage />} />
         <Route path="/servicesindia/recovery" element={<AdminRecoveryPage />} />
+        <Route path="/auth/register/approval" element={<UnderReviewPage />} />
+        <Route path="/servicesindia/doctors" element={<AdminDoctorsPage />} />
         <Route path="/auth" element={<Navigate to="/" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

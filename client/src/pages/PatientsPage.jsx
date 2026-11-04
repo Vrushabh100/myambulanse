@@ -191,10 +191,8 @@ export default function PatientsPage() {
 
   return (
     <div>
-      <button type="button" className="btn ghost small-btn back-btn" onClick={() => navigate("/")}>
-        ← Back to Dashboard
-      </button>
       <div className="eyebrow">My Patients</div>
+      <button type="button" className="btn ghost back-btn-lg" onClick={() => navigate("/")}>← Back</button>
       <div className="seg wide-seg">
         <button className={tab === "track" ? "seg-btn active" : "seg-btn"} onClick={() => setTab("track")}>
           Track Patient

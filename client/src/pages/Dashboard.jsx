@@ -114,6 +114,22 @@ function waShareUrl(coords) {
   return `https://wa.me/?text=${encodeURIComponent(text)}`;
 }
 
+// Google Maps link from a free-text clinic address OR a "lat,lng" string.
+function mapsLink(addr) {
+  const s = String(addr || "").trim();
+  if (!s) return "https://www.google.com/maps";
+  // Auto-detect coordinates like "21.1456, 79.0821" or "21.1456,79.0821"
+  const m = s.match(/^(-?\d{1,3}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)$/);
+  if (m) {
+    const lat = parseFloat(m[1]);
+    const lng = parseFloat(m[2]);
+    if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+      return `https://www.google.com/maps?q=${lat},${lng}`;
+    }
+  }
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s)}`;
+}
+
 export default function Dashboard({ user }) {
   const [patients, setPatients] = useState([]);
   const [vehicles, setVehicles] = useState([]);
@@ -162,7 +178,7 @@ export default function Dashboard({ user }) {
     setDocBusy(true);
     try {
       const personalDoctor = doc
-        ? { name: doc.name, degree: doc.degree || "", specialization: doc.specialization || "", mobile: doc.mobile || "", doctorId: doc.id }
+        ? { name: doc.name, degree: doc.degree || "", specialization: doc.specialization || "", mobile: doc.mobile || "", clinicAddress: doc.clinicAddress || "", doctorId: doc.id }
         : { name: "", degree: "", specialization: "", mobile: "", doctorId: null };
       if (!patientId) {
         // "Me" — save the owner's own family doctor
@@ -414,8 +430,25 @@ export default function Dashboard({ user }) {
       )}
 
       <div className="card hub-card">
+        <div className="hub-head">
+          <h1 className="hero-title">
+            One press.
+            <br />
+            Help is on the way.
+          </h1>
+          <p className="lead hub-lead">
+            Siren, lights, calls and your doctor — triggered from a single button.
+          </p>
+        </div>
+
         {!overlayOpen && (
           <div className="hub-sos-area">
+            <div className="eyebrow">Emergency Hub</div>
+            <div className="sos-sub">
+              {busy
+                ? "Sending SOS — getting location..."
+                : "One press → siren, lights & your doctor are alerted."}
+            </div>
             <div className="sos-ring">
               {RING.map((b, i) => {
                 const showBadge = b.badge === "vehicles" && vehicles.length === 0;
@@ -475,25 +508,8 @@ export default function Dashboard({ user }) {
                 <span className="sos-sub-label">{busy ? "Sending..." : "Press for help"}</span>
               </button>
             </div>
-            <div className="sos-sub">
-              {busy
-                ? "Sending SOS — getting location..."
-                : "One press → siren, lights & your doctor are alerted."}
-            </div>
           </div>
         )}
-
-        <div className="hub-head">
-          <div className="eyebrow">Emergency Hub</div>
-          <h1 className="hero-title">
-            One press.
-            <br />
-            Help is on the way.
-          </h1>
-          <p className="lead hub-lead">
-            Siren, lights, calls and your doctor — triggered from a single button.
-          </p>
-        </div>
 
         <div className="hub-context">
           <div className="hub-ctx-row">
@@ -566,6 +582,16 @@ export default function Dashboard({ user }) {
                   <a className="chip call-chip" href={"tel:" + familyDoc.mobile}>
                     <IconPhone size={14} />
                     Call
+                  </a>
+                ) : null}
+                {familyDoc.clinicAddress ? (
+                  <a
+                    className="chip call-chip"
+                    href={mapsLink(familyDoc.clinicAddress)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    📍 Location
                   </a>
                 ) : null}
                 <button type="button" className="btn ghost small-btn" onClick={toggleDocPicker}>

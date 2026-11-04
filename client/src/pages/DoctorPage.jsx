@@ -246,13 +246,11 @@ export default function DoctorPage({ user }) {
 
   return (
     <div>
-      <button type="button" className="btn ghost small-btn back-btn" onClick={() => navigate("/")}>
-        ← Back to Dashboard
-      </button>
       <div className="eyebrow">Doctor</div>
       <h2 style={{ marginTop: 0 }}>
         Emergency Console {user?.role === "doctor" ? "" : "(demo view for patients)"}
       </h2>
+      <button type="button" className="btn ghost back-btn-lg" onClick={() => navigate("/")}>← Back</button>
       {error && <div className="error">{error}</div>}
 
       {ringing.length > 0 && (
