@@ -25,7 +25,6 @@ import AmbulanceLoader from "./components/AmbulanceLoader.jsx";
 import ForgotMpinPage from "./pages/ForgotMpinPage.jsx";
 import SetMpinPage from "./pages/SetMpinPage.jsx";
 import AdminRecoveryPage from "./pages/AdminRecoveryPage.jsx";
-import AdminGatePage from "./pages/AdminGatePage.jsx";
 import UnderReviewPage from "./pages/UnderReviewPage.jsx";
 import AdminDoctorsPage from "./pages/AdminDoctorsPage.jsx";
 import AdminConsolesEntryPage from "./pages/AdminConsolesEntryPage.jsx";
@@ -315,14 +314,14 @@ export default function App() {
         <Route path="/auth" element={<Navigate to={authLanding()} replace />} />
         <Route path="/login/mpin/forgotmpin" element={<ForgotMpinPage />} />
         <Route path="/login/mpin/setmpin" element={<SetMpinPage onAuthed={(u) => setUser(u)} />} />
-        <Route path="/servicesindia" element={<AdminGatePage />} />
-        <Route path="/servicesindia/recovery" element={<AdminRecoveryPage />} />
-        <Route path="/servicesindia/consoles/dashboard/recovery" element={<AdminRecoveryPage />} />
-        <Route path="/auth/register/approval" element={<UnderReviewPage />} />
-        <Route path="/servicesindia/doctors" element={<AdminDoctorsPage />} />
         <Route path="/servicesindia/consoles" element={<AdminConsolesEntryPage />} />
         <Route path="/servicesindia/consoles/dashboard" element={<AdminConsoleDashboard />} />
         <Route path="/servicesindia/consoles/dashboard/doctors" element={<AdminDoctorsPage />} />
+        <Route path="/servicesindia/consoles/dashboard/recovery" element={<AdminRecoveryPage />} />
+        <Route path="/auth/register/approval" element={<UnderReviewPage />} />
+        <Route path="/servicesindia" element={<Navigate to="/servicesindia/consoles" replace />} />
+        <Route path="/servicesindia/recovery" element={<Navigate to="/servicesindia/consoles/dashboard/recovery" replace />} />
+        <Route path="/servicesindia/doctors" element={<Navigate to="/servicesindia/consoles/dashboard/doctors" replace />} />
         <Route path="*" element={<Navigate to={authLanding()} replace />} />
       </Routes>
     );
@@ -341,14 +340,14 @@ export default function App() {
         <Route path="/profile" element={<ProfilePage user={user} onLogout={handleLogout} onUpdated={(u) => { setSession(getToken(), u); setUser(u); }} />} />
         <Route path="/login/mpin/forgotmpin" element={<ForgotMpinPage />} />
         <Route path="/login/mpin/setmpin" element={<SetMpinPage user={user} onAuthed={(u) => setUser(u)} />} />
-        <Route path="/servicesindia" element={<AdminGatePage />} />
-        <Route path="/servicesindia/recovery" element={<AdminRecoveryPage />} />
-        <Route path="/servicesindia/consoles/dashboard/recovery" element={<AdminRecoveryPage />} />
-        <Route path="/auth/register/approval" element={<UnderReviewPage />} />
-        <Route path="/servicesindia/doctors" element={<AdminDoctorsPage />} />
         <Route path="/servicesindia/consoles" element={<AdminConsolesEntryPage />} />
         <Route path="/servicesindia/consoles/dashboard" element={<AdminConsoleDashboard />} />
         <Route path="/servicesindia/consoles/dashboard/doctors" element={<AdminDoctorsPage />} />
+        <Route path="/servicesindia/consoles/dashboard/recovery" element={<AdminRecoveryPage />} />
+        <Route path="/auth/register/approval" element={<UnderReviewPage />} />
+        <Route path="/servicesindia" element={<Navigate to="/servicesindia/consoles" replace />} />
+        <Route path="/servicesindia/recovery" element={<Navigate to="/servicesindia/consoles/dashboard/recovery" replace />} />
+        <Route path="/servicesindia/doctors" element={<Navigate to="/servicesindia/consoles/dashboard/doctors" replace />} />
         <Route path="/auth" element={<Navigate to="/" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
