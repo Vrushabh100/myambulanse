@@ -37,6 +37,7 @@ export default function PatientsPage() {
   const [doctors, setDoctors] = useState([]);
   const [selectedDoctorId, setSelectedDoctorId] = useState("");
   const [doctorSearch, setDoctorSearch] = useState("");
+  const [editingId, setEditingId] = useState("");
 
   async function load() {
     try {
@@ -124,39 +125,42 @@ export default function PatientsPage() {
 
     setBusy(true);
     try {
-      await api("/patients", {
-        method: "POST",
-        body: {
-          name: form.name,
-          mobile: form.mobile,
-          relation: form.relation,
-          age: form.age ? Number(form.age) : null,
-          gender: form.gender,
-          bloodGroup: form.bloodGroup,
-          diseases: form.diseases,
-          allergies: form.allergies,
-          defaultEmergency: form.defaultEmergency,
-          personalDoctor: {
-            name: form.docName,
-            degree: form.docDegree,
-            specialization: form.docSpecialization,
-            mobile: form.docMobile,
-            clinicAddress: form.docClinicAddress || "",
-            clinicLat: form.docClinicLat === "" ? null : form.docClinicLat,
-            clinicLng: form.docClinicLng === "" ? null : form.docClinicLng,
-            doctorId: selectedDoctorId || null,
-          },
-          emergencyContacts: validContacts.map((c) => ({
-            name: c.name.trim(),
-            mobile: c.mobile.trim(),
-            relation: c.relation.trim()
-          }))
-        }
-      });
+      const payload = {
+        name: form.name,
+        mobile: form.mobile,
+        relation: form.relation,
+        age: form.age ? Number(form.age) : null,
+        gender: form.gender,
+        bloodGroup: form.bloodGroup,
+        diseases: form.diseases,
+        allergies: form.allergies,
+        defaultEmergency: form.defaultEmergency,
+        personalDoctor: {
+          name: form.docName,
+          degree: form.docDegree,
+          specialization: form.docSpecialization,
+          mobile: form.docMobile,
+          clinicAddress: form.docClinicAddress || "",
+          clinicLat: form.docClinicLat === "" ? null : form.docClinicLat,
+          clinicLng: form.docClinicLng === "" ? null : form.docClinicLng,
+          doctorId: selectedDoctorId || null,
+        },
+        emergencyContacts: validContacts.map((c) => ({
+          name: c.name.trim(),
+          mobile: c.mobile.trim(),
+          relation: c.relation.trim()
+        }))
+      };
+      if (editingId) {
+        await api(`/patients/${editingId}`, { method: "PUT", body: payload });
+      } else {
+        await api("/patients", { method: "POST", body: payload });
+      }
       setForm(EMPTY);
       setContacts([{ ...EMPTY_CONTACT }]);
       setSelectedDoctorId("");
       setDoctorSearch("");
+      setEditingId("");
       await load();
       setTab("track");
     } catch (err) {
@@ -164,6 +168,47 @@ export default function PatientsPage() {
     } finally {
       setBusy(false);
     }
+  }
+
+  function startEdit(p) {
+    setError("");
+    setEditingId(p._id);
+    setForm({
+      name: p.name || "",
+      mobile: p.mobile || "",
+      relation: p.relation || "Self",
+      age: p.age ?? "",
+      gender: p.gender || "",
+      bloodGroup: p.bloodGroup || "",
+      diseases: Array.isArray(p.diseases) ? p.diseases.join(", ") : (p.diseases || ""),
+      allergies: Array.isArray(p.allergies) ? p.allergies.join(", ") : (p.allergies || ""),
+      defaultEmergency: p.defaultEmergency || "General emergency",
+      docName: p.personalDoctor?.name || "",
+      docDegree: p.personalDoctor?.degree || "",
+      docSpecialization: p.personalDoctor?.specialization || "",
+      docMobile: p.personalDoctor?.mobile || "",
+      docClinicAddress: p.personalDoctor?.clinicAddress || "",
+      docClinicLat: p.personalDoctor?.clinicLat ?? "",
+      docClinicLng: p.personalDoctor?.clinicLng ?? ""
+    });
+    setSelectedDoctorId(p.personalDoctor?.doctorId ? String(p.personalDoctor.doctorId) : "");
+    setContacts(
+      p.emergencyContacts && p.emergencyContacts.length
+        ? p.emergencyContacts.map((c) => ({ name: c.name || "", mobile: c.mobile || "", relation: c.relation || "" }))
+        : [{ ...EMPTY_CONTACT }]
+    );
+    setTab("new");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function cancelEdit() {
+    setEditingId("");
+    setForm(EMPTY);
+    setContacts([{ ...EMPTY_CONTACT }]);
+    setSelectedDoctorId("");
+    setDoctorSearch("");
+    setError("");
+    setTab("track");
   }
 
   async function openPatient(p) {
@@ -214,7 +259,7 @@ export default function PatientsPage() {
 
       {tab === "new" && (
         <form className="card form-2col" onSubmit={addPatient}>
-          <h2>Add Family Member / Patient</h2>
+          <h2>{editingId ? "Edit Family Member / Patient" : "Add Family Member / Patient"}</h2>
           <div>
             <label>Patient name *</label>
             <input required value={form.name} onChange={set("name")} placeholder="Patient full name" />
@@ -367,8 +412,13 @@ export default function PatientsPage() {
           </div>
           <div className="full">
             <button className="btn primary" disabled={busy}>
-              {busy ? "Saving..." : "Add Patient"}
+              {busy ? "Saving..." : editingId ? "Save Changes" : "Add Patient"}
             </button>
+            {editingId ? (
+              <button type="button" className="btn ghost" disabled={busy} onClick={cancelEdit} style={{ marginLeft: 8 }}>
+                Cancel
+              </button>
+            ) : null}
           </div>
         </form>
       )}
@@ -392,6 +442,16 @@ export default function PatientsPage() {
                     className="btn ghost small-btn"
                     onClick={(e) => {
                       e.stopPropagation();
+                      startEdit(p);
+                    }}
+                    title="Edit"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="btn ghost small-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
                       removePatient(p._id);
                     }}
                   >
@@ -408,6 +468,9 @@ export default function PatientsPage() {
               <>
                 <h2>
                   {selected.name} <small className="muted">({selected.relation})</small>
+                  <button type="button" className="btn ghost small-btn" style={{ marginLeft: 10 }} onClick={() => startEdit(selected)}>
+                    Edit
+                  </button>
                 </h2>
                 <table className="kv">
                   <tbody>

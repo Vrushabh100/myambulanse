@@ -142,6 +142,7 @@ function ProfilePage({ user, onLogout, onUpdated }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(user.name || "");
   const [address, setAddress] = useState(user.address || "");
+  const [clinicAddress, setClinicAddress] = useState(user.doctorProfile?.clinicAddress || "");
   const [clinicLat, setClinicLat] = useState(user.doctorProfile?.clinicLat ?? "");
   const [clinicLng, setClinicLng] = useState(user.doctorProfile?.clinicLng ?? "");
   const [busy, setBusy] = useState(false);
@@ -196,6 +197,8 @@ function ProfilePage({ user, onLogout, onUpdated }) {
                   <td>{user.doctorProfile?.specialization || "—"} <span className="muted small">(tap to update)</span></td>
                 </tr>
                 <tr><td>Clinic address</td><td>{user.doctorProfile?.clinicAddress || "—"}</td></tr>
+                <tr><td>Clinic latitude</td><td>{user.doctorProfile?.clinicLat ?? "—"}</td></tr>
+                <tr><td>Clinic longitude</td><td>{user.doctorProfile?.clinicLng ?? "—"}</td></tr>
               </>
             )}
           </tbody>

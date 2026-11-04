@@ -217,6 +217,44 @@ export default function Dashboard({ user }) {
     setSelfDoctor(user?.personalDoctor || null);
   }, [user]);
 
+  // While my SOS is active, keep pushing my live location to the server so the
+  // responding doctor sees an up-to-date position.
+  useEffect(() => {
+    if (!active || !active._id) return undefined;
+    if (active.status === "resolved" || active.status === "cancelled") return undefined;
+    let stop = false;
+    let lastPush = 0;
+
+    async function push() {
+      if (stop || !navigator.geolocation) return;
+      const loc = await getLocation();
+      if (stop || !loc || loc.lat == null || loc.lng == null) return;
+      const now = Date.now();
+      if (now - lastPush < 8000) return;
+      lastPush = now;
+      try {
+        await api(`/emergencies/${active._id}/location`, {
+          method: "POST",
+          body: { lat: loc.lat, lng: loc.lng, accuracy: loc.accuracy }
+        });
+      } catch {
+        /* ignore, will retry on next tick */
+      }
+    }
+
+    push();
+    const t = setInterval(push, 12000);
+    const onVis = () => {
+      if (document.visibilityState === "visible") push();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      stop = true;
+      clearInterval(t);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, [active && active._id, active && active.status]);
+
   useEffect(() => {
     api("/doctors")
       .then((list) => {

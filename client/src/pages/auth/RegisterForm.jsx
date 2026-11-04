@@ -71,6 +71,8 @@ export default function RegisterForm({ onLogin, onSwitch }) {
         <><label>Address</label><input value={form.address} onChange={set("address")} placeholder="Home address" /></>
       ) : (
         <>
+          <label>Address</label>
+          <input value={form.address} onChange={set("address")} placeholder="Home address" />
           <label>Degree</label>
           <input value={form.degree} onChange={set("degree")} placeholder="e.g. MBBS, MD" />
           <label>Specialization</label>

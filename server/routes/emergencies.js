@@ -183,6 +183,36 @@ router.post("/sos", async (req, res) => {
   }
 });
 
+// Patient updates their live location while the SOS is active.
+router.post("/:id/location", async (req, res) => {
+  try {
+    const { lat, lng, accuracy } = req.body || {};
+    const e = await Emergency.findById(req.params.id);
+    if (!e) return res.status(404).json({ error: "Emergency not found" });
+    if (String(e.userId) !== String(req.user.id)) {
+      return res.status(403).json({ error: "Not your emergency" });
+    }
+    if (CLOSED_STATUSES.includes(e.status)) {
+      return res.status(409).json({ error: "Emergency is closed" });
+    }
+    if (lat != null && lng != null) {
+      const la = Number(lat);
+      const ln = Number(lng);
+      if (Number.isFinite(la) && Number.isFinite(ln) && la >= -90 && la <= 90 && ln >= -180 && ln <= 180) {
+        e.location = {
+          lat: la,
+          lng: ln,
+          accuracy: accuracy != null && Number.isFinite(Number(accuracy)) ? Number(accuracy) : (e.location && e.location.accuracy) || null
+        };
+        await e.save();
+      }
+    }
+    res.json({ ok: true, location: e.location });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get("/", async (req, res) => {
   const filter = req.user.role === "doctor" ? doctorVisibilityFilter(req.user) : { userId: req.user.id };
   const emergencies = await Emergency.find(filter).sort({ createdAt: -1 }).limit(50);
