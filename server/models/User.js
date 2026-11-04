@@ -25,7 +25,9 @@ const userSchema = new mongoose.Schema(
     doctorProfile: {
       degree: { type: String, default: "" },
       specialization: { type: String, default: "" },
-      clinicAddress: { type: String, default: "" }
+      clinicAddress: { type: String, default: "" },
+      clinicLat: { type: Number, default: null },
+      clinicLng: { type: Number, default: null }
     },
     personalDoctor: {
       name: { type: String, default: "" },
@@ -33,6 +35,8 @@ const userSchema = new mongoose.Schema(
       specialization: { type: String, default: "" },
       mobile: { type: String, default: "" },
       clinicAddress: { type: String, default: "" },
+      clinicLat: { type: Number, default: null },
+      clinicLng: { type: Number, default: null },
       doctorId: { type: mongoose.Schema.Types.ObjectId, default: null }
     },
     emergencyContacts: [{ name: String, mobile: String, relation: String }],

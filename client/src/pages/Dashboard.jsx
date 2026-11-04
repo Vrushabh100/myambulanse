@@ -114,8 +114,13 @@ function waShareUrl(coords) {
   return `https://wa.me/?text=${encodeURIComponent(text)}`;
 }
 
-// Google Maps link from a free-text clinic address OR a "lat,lng" string.
-function mapsLink(addr) {
+// Google Maps link from lat/lng coordinates (preferred) or a free-text clinic address / "lat,lng" string.
+function mapsLink(addr, lat, lng) {
+  const la = Number(lat);
+  const ln = Number(lng);
+  if (Number.isFinite(la) && Number.isFinite(ln) && la >= -90 && la <= 90 && ln >= -180 && ln <= 180) {
+    return `https://www.google.com/maps?q=${la},${ln}`;
+  }
   const s = String(addr || "").trim();
   if (!s) return "https://www.google.com/maps";
   // Auto-detect coordinates like "21.1456, 79.0821" or "21.1456,79.0821"
@@ -150,6 +155,7 @@ export default function Dashboard({ user }) {
   const [docErr, setDocErr] = useState("");
   const [selfDoctor, setSelfDoctor] = useState(user?.personalDoctor || null);
   const [doctorClinic, setDoctorClinic] = useState({ byId: {}, byMobile: {} });
+  const [doctorGeo, setDoctorGeo] = useState({ byId: {}, byMobile: {} });
 
   const docQuery = docSearch.trim().toLowerCase();
   const docFiltered = (docList || []).filter((d) => {
@@ -216,13 +222,22 @@ export default function Dashboard({ user }) {
       .then((list) => {
         const byId = {};
         const byMobile = {};
+        const geoId = {};
+        const geoMobile = {};
         (Array.isArray(list) ? list : []).forEach((d) => {
-          if (d && d.clinicAddress) {
+          if (!d) return;
+          if (d.clinicAddress) {
             byId[d.id] = d.clinicAddress;
             if (d.mobile) byMobile[d.mobile] = d.clinicAddress;
           }
+          const geo = { lat: d.clinicLat ?? null, lng: d.clinicLng ?? null };
+          if (geo.lat != null && geo.lng != null) {
+            geoId[d.id] = geo;
+            if (d.mobile) geoMobile[d.mobile] = geo;
+          }
         });
         setDoctorClinic({ byId, byMobile });
+        setDoctorGeo({ byId: geoId, byMobile: geoMobile });
       })
       .catch(() => {});
   }, []);
@@ -321,6 +336,12 @@ export default function Dashboard({ user }) {
        familyDoc.clinicAddress ||
        "")
     : "";
+
+  const familyDocGeo = familyDoc
+    ? (doctorGeo.byId?.[familyDoc.doctorId] ||
+       doctorGeo.byMobile?.[familyDoc.mobile] ||
+       (familyDoc.clinicLat != null && familyDoc.clinicLng != null ? { lat: familyDoc.clinicLat, lng: familyDoc.clinicLng } : null))
+    : null;
 
   function historyBadge(status) {
     if (status === "active") return "badge danger";
@@ -607,14 +628,14 @@ export default function Dashboard({ user }) {
                     Call
                   </a>
                 ) : null}
-                {familyDocClinic ? (
+                {(familyDocGeo || familyDocClinic) ? (
                   <a
                     className="chip call-chip"
-                    href={mapsLink(familyDocClinic)}
+                    href={mapsLink(familyDocClinic, familyDocGeo?.lat, familyDocGeo?.lng)}
                     target="_blank"
                     rel="noreferrer"
                   >
-                    📍 Location
+                    Location
                   </a>
                 ) : null}
                 <button type="button" className="btn ghost small-btn" onClick={toggleDocPicker}>

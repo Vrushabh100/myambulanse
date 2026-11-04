@@ -5,9 +5,9 @@ import MpinInput from "../../components/MpinInput.jsx";
 import { SECURITY_QUESTIONS } from "../../constants/securityQuestions.js";
 import { MOBILE_RE, WEAK_MPIN_MESSAGE, weakMpin } from "../../mpinRules.js";
 
-export default function RegisterForm({ onLogin }) {
+export default function RegisterForm({ onLogin, onSwitch }) {
   const [role, setRole] = useState("patient");
-  const [form, setForm] = useState({ mobile: "", name: "", address: "", degree: "", specialization: "", clinicAddress: "" });
+  const [form, setForm] = useState({ mobile: "", name: "", address: "", degree: "", specialization: "", clinicAddress: "", clinicLat: "", clinicLng: "" });
   const [contacts, setContacts] = useState([{ name: "", relation: "", mobile: "" }]);
   const [mpin, setMpin] = useState("");
   const [confirmMpin, setConfirmMpin] = useState("");
@@ -41,7 +41,7 @@ export default function RegisterForm({ onLogin }) {
     setBusy(true);
     try {
       const body = { mobile: form.mobile, name: form.name.trim(), role, address: form.address, mpin, securityQuestion: question, answer };
-      if (role === "doctor") body.doctorProfile = { degree: form.degree, specialization: form.specialization, clinicAddress: form.clinicAddress };
+      if (role === "doctor") body.doctorProfile = { degree: form.degree, specialization: form.specialization, clinicAddress: form.clinicAddress, clinicLat: form.clinicLat, clinicLng: form.clinicLng };
       else body.emergencyContacts = contacts.map((c) => ({ name: c.name.trim(), relation: c.relation.trim(), mobile: c.mobile.trim() })).filter((c) => c.name || c.mobile);
       const data = await api("/auth/register", { method: "POST", body });
       if (data.pending === true || data.approvalStatus === "pending") {
@@ -70,7 +70,19 @@ export default function RegisterForm({ onLogin }) {
       {role === "patient" ? (
         <><label>Address</label><input value={form.address} onChange={set("address")} placeholder="Home address" /></>
       ) : (
-        <><label>Degree</label><input value={form.degree} onChange={set("degree")} placeholder="e.g. MBBS, MD" /><label>Specialization</label><input value={form.specialization} onChange={set("specialization")} placeholder="e.g. Cardiology" /><label>Clinic / Hospital address</label><input value={form.clinicAddress} onChange={set("clinicAddress")} placeholder="Clinic / Hospital address" /></>
+        <>
+          <label>Degree</label>
+          <input value={form.degree} onChange={set("degree")} placeholder="e.g. MBBS, MD" />
+          <label>Specialization</label>
+          <input value={form.specialization} onChange={set("specialization")} placeholder="e.g. Cardiology" />
+          <label>Clinic / Hospital address</label>
+          <input value={form.clinicAddress} onChange={set("clinicAddress")} placeholder="Clinic / Hospital address" />
+          <label>Clinic latitude</label>
+          <input inputMode="decimal" value={form.clinicLat} onChange={set("clinicLat")} placeholder="e.g. 21.1458" />
+          <label>Clinic longitude</label>
+          <input inputMode="decimal" value={form.clinicLng} onChange={set("clinicLng")} placeholder="e.g. 79.0882" />
+          <p className="hint">Optional but recommended — enter your clinic's exact coordinates so patients get the accurate Google Maps location.</p>
+        </>
       )}
       <label>Mobile number</label>
       <input required inputMode="numeric" maxLength={10} value={form.mobile} onChange={(e) => setForm((f) => ({ ...f, mobile: e.target.value.replace(/\D/g, "") }))} placeholder="10-digit mobile" />
@@ -102,7 +114,7 @@ export default function RegisterForm({ onLogin }) {
       )}
       {error && <div className="error">{error}</div>}
       <button className="btn primary wide" disabled={busy}>{busy ? "Please wait..." : "Create account"}</button>
-      <button type="button" className="auth-switch" onClick={() => navigate("/auth/login")}>Already have an account — Login</button>
+      <button type="button" className="auth-switch" onClick={() => { if (onSwitch) onSwitch(); else navigate("/auth/login"); }}>Already have an account — Login</button>
     </form>
   );
 }

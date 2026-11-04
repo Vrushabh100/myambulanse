@@ -52,10 +52,16 @@ router.post("/register", async (req, res) => {
     let profile;
     if (finalRole === "doctor") {
       const dp = doctorProfile || {};
+      const coord = (v, min, max) => {
+        const n = Number(v);
+        return Number.isFinite(n) && n >= min && n <= max ? n : null;
+      };
       profile = {
         degree: String(dp.degree || "").slice(0, 60),
         specialization: String(dp.specialization || "").slice(0, 80),
-        clinicAddress: String(dp.clinicAddress || "").slice(0, 200)
+        clinicAddress: String(dp.clinicAddress || "").slice(0, 200),
+        clinicLat: coord(dp.clinicLat, -90, 90),
+        clinicLng: coord(dp.clinicLng, -180, 180)
       };
     } else {
       const cc = validateEmergencyContacts(emergencyContacts);

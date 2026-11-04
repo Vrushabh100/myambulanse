@@ -24,7 +24,9 @@ router.get("/", async (req, res) => {
       mobile: d.mobile,
       specialization: d.doctorProfile?.specialization || "",
       degree: d.doctorProfile?.degree || "",
-      clinicAddress: d.doctorProfile?.clinicAddress || ""
+      clinicAddress: d.doctorProfile?.clinicAddress || "",
+      clinicLat: d.doctorProfile?.clinicLat ?? null,
+      clinicLng: d.doctorProfile?.clinicLng ?? null
     }))
   );
 });

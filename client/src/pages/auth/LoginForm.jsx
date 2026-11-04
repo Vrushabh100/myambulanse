@@ -4,7 +4,7 @@ import { api, setSession, saveMobile, getSavedMobile, saveDeviceToken, setRecove
 import MpinInput from "../../components/MpinInput.jsx";
 import { MOBILE_RE } from "../../mpinRules.js";
 
-export default function LoginForm({ onLogin }) {
+export default function LoginForm({ onLogin, onSwitch }) {
   const [mobile, setMobile] = useState(getSavedMobile());
   const [mpin, setMpin] = useState("");
   const [step, setStep] = useState(MOBILE_RE.test(getSavedMobile()) ? "mpin" : "mobile");
@@ -63,7 +63,7 @@ export default function LoginForm({ onLogin }) {
 
       <button className="btn primary wide" disabled={busy || lockSeconds > 0}>{busy ? "Please wait..." : step === "mobile" ? "Continue" : "Login"}</button>
       {step === "mpin" && (<button type="button" className="auth-switch" onClick={() => navigate("/login/mpin/forgotmpin")}>Forgot MPIN?</button>)}
-      <button type="button" className="auth-switch" onClick={() => navigate("/auth/register")}>Don't have an account — Register</button>
+      <button type="button" className="auth-switch" onClick={() => { if (onSwitch) onSwitch(); else navigate("/auth/register"); }}>Don't have an account — Register</button>
     </form>
   );
 }

@@ -122,6 +122,8 @@ function doctorLite(d) {
     degree: d.doctorProfile?.degree || "",
     specialization: d.doctorProfile?.specialization || "",
     clinicAddress: d.doctorProfile?.clinicAddress || "",
+    clinicLat: d.doctorProfile?.clinicLat ?? null,
+    clinicLng: d.doctorProfile?.clinicLng ?? null,
     approvalStatus: d.approvalStatus || "approved",
     approvalNote: d.approvalNote || "",
     suspendUntil: d.suspendUntil || null,

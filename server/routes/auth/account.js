@@ -60,6 +60,8 @@ router.put("/me/doctor", authMiddleware, async (req, res) => {
       specialization: String(d.specialization || "").slice(0, 60),
       mobile: String(d.mobile || "").replace(/\D/g, "").slice(0, 10),
       clinicAddress: String(d.clinicAddress || "").slice(0, 200),
+      clinicLat: Number.isFinite(Number(d.clinicLat)) && Number(d.clinicLat) >= -90 && Number(d.clinicLat) <= 90 ? Number(d.clinicLat) : null,
+      clinicLng: Number.isFinite(Number(d.clinicLng)) && Number(d.clinicLng) >= -180 && Number(d.clinicLng) <= 180 ? Number(d.clinicLng) : null,
       doctorId: null
     };
     // Resolve doctorId from a registered doctor (by explicit id, else by mobile)
@@ -94,6 +96,11 @@ router.put("/me", authMiddleware, async (req, res) => {
     if (!user) return res.status(401).json({ error: "User not found" });
     if (user.role === "doctor" && clinicAddress != null) {
       update["doctorProfile.clinicAddress"] = String(clinicAddress).slice(0, 200);
+    }
+    if (user.role === "doctor") {
+      const { clinicLat, clinicLng } = req.body || {};
+      if (clinicLat != null) { const n = Number(clinicLat); update["doctorProfile.clinicLat"] = Number.isFinite(n) && n >= -90 && n <= 90 ? n : null; }
+      if (clinicLng != null) { const n = Number(clinicLng); update["doctorProfile.clinicLng"] = Number.isFinite(n) && n >= -180 && n <= 180 ? n : null; }
     }
     const updated = await User.findByIdAndUpdate(req.user.id, { $set: update }, { new: true });
     const protectedFields = [];

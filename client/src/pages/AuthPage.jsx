@@ -24,7 +24,7 @@ export default function AuthPage({ mode: modeProp = "register", onLogin }) {
           <button type="button" className={mode === "login" ? "seg-btn active" : "seg-btn"} onClick={() => setMode("login")}>Login</button>
           <button type="button" className={mode === "register" ? "seg-btn active" : "seg-btn"} onClick={() => setMode("register")}>Register</button>
         </div>
-        {mode === "login" ? <LoginForm onLogin={onLogin} /> : <RegisterForm onLogin={onLogin} />}
+        {mode === "login" ? <LoginForm onLogin={onLogin} onSwitch={() => setMode("register")} /> : <RegisterForm onLogin={onLogin} onSwitch={() => setMode("login")} />}
       </div>
     </div>
   );

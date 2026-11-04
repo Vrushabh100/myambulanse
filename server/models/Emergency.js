@@ -36,6 +36,8 @@ const emergencySchema = new mongoose.Schema(
         specialization: { type: String, default: "" },
         mobile: { type: String, default: "" },
         clinicAddress: { type: String, default: "" },
+        clinicLat: { type: Number, default: null },
+        clinicLng: { type: Number, default: null },
         doctorId: { type: mongoose.Schema.Types.ObjectId, default: null }
       },
       emergencyContacts: [
