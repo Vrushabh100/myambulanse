@@ -82,7 +82,7 @@ router.put("/me/doctor", authMiddleware, async (req, res) => {
 
 router.put("/me", authMiddleware, async (req, res) => {
   try {
-    const { name, address, clinicAddress } = req.body || {};
+    const { name, address, clinicAddress, degree, specialization } = req.body || {};
     const update = {};
     if (name != null) {
       const n = String(name).trim();
@@ -96,7 +96,15 @@ router.put("/me", authMiddleware, async (req, res) => {
       update["doctorProfile.clinicAddress"] = String(clinicAddress).slice(0, 200);
     }
     const updated = await User.findByIdAndUpdate(req.user.id, { $set: update }, { new: true });
-    res.json({ user: publicUser(updated) });
+    const protectedFields = [];
+    if (degree != null) protectedFields.push("degree");
+    if (specialization != null) protectedFields.push("specialization");
+    const out = { user: publicUser(updated) };
+    if (protectedFields.length) {
+      out.notice = "Degree and specialization cannot be changed here. Please contact administration / customer care.";
+      out.protectedFields = protectedFields;
+    }
+    res.json(out);
   } catch (e) {
     console.error("update profile error:", e.message);
     res.status(500).json({ error: "Something went wrong. Please try again." });
