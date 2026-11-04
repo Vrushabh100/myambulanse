@@ -142,7 +142,8 @@ function ProfilePage({ user, onLogout, onUpdated }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(user.name || "");
   const [address, setAddress] = useState(user.address || "");
-  const [clinicAddress, setClinicAddress] = useState(user.doctorProfile?.clinicAddress || "");
+  const [clinicLat, setClinicLat] = useState(user.doctorProfile?.clinicLat ?? "");
+  const [clinicLng, setClinicLng] = useState(user.doctorProfile?.clinicLng ?? "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [note, setNote] = useState("");
@@ -154,7 +155,11 @@ function ProfilePage({ user, onLogout, onUpdated }) {
     setBusy(true);
     try {
       const body = { name, address };
-      if (isDoctor) body.clinicAddress = clinicAddress;
+      if (isDoctor) {
+        body.clinicAddress = clinicAddress;
+        if (clinicLat !== "") body.clinicLat = clinicLat;
+        if (clinicLng !== "") body.clinicLng = clinicLng;
+      }
       const data = await api("/auth/me", { method: "PUT", body });
       if (onUpdated && data && data.user) onUpdated(data.user);
       setEditing(false);
@@ -213,12 +218,17 @@ function ProfilePage({ user, onLogout, onUpdated }) {
               <>
                 <label>Clinic / Hospital address</label>
                 <input value={clinicAddress} onChange={(e) => setClinicAddress(e.target.value)} maxLength={200} placeholder="Clinic / hospital address (used for Google Maps)" />
+                <label>Clinic latitude (optional)</label>
+                <input inputMode="decimal" value={clinicLat} onChange={(e) => setClinicLat(e.target.value)} placeholder="e.g. 21.1458" />
+                <label>Clinic longitude (optional)</label>
+                <input inputMode="decimal" value={clinicLng} onChange={(e) => setClinicLng(e.target.value)} placeholder="e.g. 79.0882" />
+                <p className="hint">Clinic latitude/longitude opens the exact Google Maps location for patients. Leave blank to keep the clinic address fallback.</p>
               </>
             )}
             {error && <div className="error">{error}</div>}
             <div className="row-actions">
               <button className="btn primary" disabled={busy} onClick={save}>{busy ? "Saving..." : "Save changes"}</button>
-              <button className="btn ghost" disabled={busy} onClick={() => { setEditing(false); setError(""); setName(user.name || ""); setAddress(user.address || ""); setClinicAddress(user.doctorProfile?.clinicAddress || ""); }}>Cancel</button>
+              <button className="btn ghost" disabled={busy} onClick={() => { setEditing(false); setError(""); setName(user.name || ""); setAddress(user.address || ""); setClinicAddress(user.doctorProfile?.clinicAddress || ""); setClinicLat(user.doctorProfile?.clinicLat ?? ""); setClinicLng(user.doctorProfile?.clinicLng ?? ""); }}>Cancel</button>
             </div>
           </div>
         ) : (
