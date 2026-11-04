@@ -149,6 +149,7 @@ export default function Dashboard({ user }) {
   const [docBusy, setDocBusy] = useState(false);
   const [docErr, setDocErr] = useState("");
   const [selfDoctor, setSelfDoctor] = useState(user?.personalDoctor || null);
+  const [doctorClinic, setDoctorClinic] = useState({ byId: {}, byMobile: {} });
 
   const docQuery = docSearch.trim().toLowerCase();
   const docFiltered = (docList || []).filter((d) => {
@@ -209,6 +210,22 @@ export default function Dashboard({ user }) {
   useEffect(() => {
     setSelfDoctor(user?.personalDoctor || null);
   }, [user]);
+
+  useEffect(() => {
+    api("/doctors")
+      .then((list) => {
+        const byId = {};
+        const byMobile = {};
+        (Array.isArray(list) ? list : []).forEach((d) => {
+          if (d && d.clinicAddress) {
+            byId[d.id] = d.clinicAddress;
+            if (d.mobile) byMobile[d.mobile] = d.clinicAddress;
+          }
+        });
+        setDoctorClinic({ byId, byMobile });
+      })
+      .catch(() => {});
+  }, []);
 
   function loadHistory() {
     api("/emergencies").then(setEmergencies).catch(() => {});
@@ -298,6 +315,12 @@ export default function Dashboard({ user }) {
   const overlayOpen = !!active && !panelHidden;
   const selectedPatient = patients.find((p) => p._id === patientId);
   const familyDoc = selectedPatient?.personalDoctor || (patientId ? null : selfDoctor);
+  const familyDocClinic = familyDoc
+    ? (doctorClinic.byId?.[familyDoc.doctorId] ||
+       doctorClinic.byMobile?.[familyDoc.mobile] ||
+       familyDoc.clinicAddress ||
+       "")
+    : "";
 
   function historyBadge(status) {
     if (status === "active") return "badge danger";
@@ -584,10 +607,10 @@ export default function Dashboard({ user }) {
                     Call
                   </a>
                 ) : null}
-                {familyDoc.clinicAddress ? (
+                {familyDocClinic ? (
                   <a
                     className="chip call-chip"
-                    href={mapsLink(familyDoc.clinicAddress)}
+                    href={mapsLink(familyDocClinic)}
                     target="_blank"
                     rel="noreferrer"
                   >

@@ -16,7 +16,8 @@ const EMPTY = {
   docName: "",
   docDegree: "",
   docSpecialization: "",
-  docMobile: ""
+  docMobile: "",
+  docClinicAddress: ""
 };
 
 const EMPTY_CONTACT = { name: "", mobile: "", relation: "" };
@@ -57,7 +58,7 @@ export default function PatientsPage() {
     setSelectedDoctorId(id);
     const d = doctors.find((x) => String(x.id) === String(id));
     if (!d) {
-      setForm((f) => ({ ...f, docName: "", docDegree: "", docSpecialization: "", docMobile: "" }));
+      setForm((f) => ({ ...f, docName: "", docDegree: "", docSpecialization: "", docMobile: "", docClinicAddress: "" }));
       return;
     }
     setForm((f) => ({
@@ -65,7 +66,8 @@ export default function PatientsPage() {
       docName: d.name || "",
       docDegree: d.degree || "",
       docSpecialization: d.specialization || "",
-      docMobile: d.mobile || ""
+      docMobile: d.mobile || "",
+      docClinicAddress: d.clinicAddress || ""
     }));
   }
 
@@ -135,6 +137,7 @@ export default function PatientsPage() {
             degree: form.docDegree,
             specialization: form.docSpecialization,
             mobile: form.docMobile,
+            clinicAddress: form.docClinicAddress || "",
             doctorId: selectedDoctorId || null
           },
           emergencyContacts: validContacts.map((c) => ({
